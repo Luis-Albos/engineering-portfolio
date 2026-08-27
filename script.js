@@ -10,8 +10,8 @@ const portfolioConfig = {
   initialPage: 1,
   pagePath: page => pageAssetPath("assets/portfolio", page),
   thumbnailPath: page => pageAssetPath("assets/thumbnails", page),
-  pdfUrl: "assets/Luis_Albos_Engineering_Portfolio.pdf",
-  resumeUrl: "assets/Luis_Albos_Resume.pdf",
+  pdfUrl: SITE_CONFIG.portfolioPdfUrl,
+  resumePageUrl: SITE_CONFIG.resumePageUrl,
   chapters: [
     { roman: "", title: "Cover", fullTitle: "Luis Albos Engineering Portfolio", startPage: 1, endPage: 1, isFrontMatter: true },
     { roman: "", title: "Contents", fullTitle: "Table of Contents", startPage: 2, endPage: 2, isFrontMatter: true },
@@ -25,11 +25,7 @@ const portfolioConfig = {
     { roman: "VIII", title: "X-02S Strike Wyvern", startPage: 27, endPage: 28, projectType: "Personal Project", tools: "SolidWorks / SAE Aero Outer Mold Line CAD Training" },
     { roman: "IX", title: "Golden Winged Monarch", startPage: 29, endPage: 31, projectType: "Personal Project", tools: "SolidWorks / Blender / Minecraft workflow" }
   ],
-  links: {
-    linkedin: "https://www.linkedin.com/in/luis-albos",
-    email: "mailto:luis.e.albos@gmail.com",
-    github: "https://github.com/YOUR-USERNAME" // Replace when a GitHub profile is available.
-  }
+  links: SITE_CONFIG.links
 };
 
 (() => {
@@ -123,7 +119,7 @@ const portfolioConfig = {
   function applyConfiguration() {
     document.querySelectorAll(".total-pages-display").forEach(node => { node.textContent = config.totalPages; });
     document.querySelectorAll(".pdf-link").forEach(link => { link.href = config.pdfUrl; });
-    document.querySelectorAll(".resume-link").forEach(link => { link.href = config.resumeUrl; });
+    document.querySelectorAll(".resume-link").forEach(link => { link.href = config.resumePageUrl; });
     document.querySelectorAll(".linkedin-link").forEach(link => { link.href = config.links.linkedin; });
     document.querySelectorAll(".email-link").forEach(link => { link.href = config.links.email; });
     document.querySelectorAll(".github-link").forEach(link => { link.href = config.links.github; });
@@ -212,7 +208,8 @@ const portfolioConfig = {
     state.currentPage = target;
     renderPage();
     const canonicalHash = `#page=${target}`;
-    if (!options.fromHash || window.location.hash !== canonicalHash) {
+    const hasPageHash = /^#page=/i.test(window.location.hash);
+    if (!options.fromHash || (hasPageHash && window.location.hash !== canonicalHash)) {
       history.replaceState(null, "", `${window.location.pathname}${window.location.search}${canonicalHash}`);
     }
   }

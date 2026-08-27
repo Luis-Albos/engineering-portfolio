@@ -12,7 +12,7 @@ A fast, responsive viewer for the 31-page Luis Albos Engineering Portfolio. It i
    - `page-31.webp`
 3. Optionally place smaller matching images in `assets/thumbnails/` using the same one-based filenames. If a separate thumbnail is unavailable, the viewer automatically uses its full-size portfolio page.
 4. Place the optimized downloadable portfolio at `assets/Luis_Albos_Engineering_Portfolio.pdf`.
-5. Place the resume at `assets/Luis_Albos_Resume.pdf`.
+5. The resume viewer uses the repository's existing `assets/portfolio/Luis_Albos_Resume.pdf` file.
 
 Page filenames, visible labels, chapter ranges, the page-jump field, and URL hashes such as `#page=15` all use the same one-based numbering.
 
@@ -20,16 +20,20 @@ For best performance, export WebP images near the largest size at which they wil
 
 ## Update pages, chapters, and links
 
-Open `script.js` and edit the `portfolioConfig` object at the top. It controls:
+Shared document and external-link paths live in `site-config.js`. Keep these paths relative so the site works from the `/engineering-portfolio/` GitHub Pages project subdirectory. The resume asset has one canonical setting: `resumeAssetUrl`.
+
+Open `script.js` and edit the `portfolioConfig` object at the top to control:
 
 - `totalPages`: the number of portfolio images
 - `initialPage`: the default page when there is no URL hash
 - `pagePath` and `thumbnailPath`: centralized one-based page filename generation
-- `pdfUrl` and `resumeUrl`: downloadable document paths
+- `pdfUrl` and `resumePageUrl`: values sourced from `site-config.js`
 - `chapters`: Roman numerals, navigation titles, page ranges, and portfolio details
 - `links`: LinkedIn, email, and GitHub destinations
 
 The LinkedIn and email links are configured for Luis Albos. The GitHub URL intentionally remains an obvious placeholder until a profile is supplied.
+
+`resume.html` provides the dedicated responsive resume viewer. Both desktop and mobile Resume navigation open that page rather than linking directly to the PDF.
 
 ## Run locally
 
