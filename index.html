@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#111315">
+    <meta name="description" content="Luis Albos Engineering Portfolio — aerospace, mechatronics, robotics, technical leadership, and digital tools.">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Luis Albos — Engineering Portfolio">
+    <meta property="og:description" content="A 31-page aerospace and mechatronics engineering portfolio by Luis Albos.">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Luis Albos — Engineering Portfolio">
+    <meta name="twitter:description" content="A 31-page aerospace and mechatronics engineering portfolio by Luis Albos.">
+    <title>Luis Albos — Engineering Portfolio</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#portfolio-viewer">Skip to portfolio viewer</a>
+
+    <header class="site-header">
+      <a class="brand" href="#portfolio-viewer" aria-label="Luis Albos Engineering Portfolio, return to viewer">
+        <span class="brand-name">Luis Albos</span>
+        <span class="brand-details">
+          <span class="brand-label">Engineering Portfolio</span>
+          <span class="brand-role">Aerospace &amp; Mechatronics Engineering</span>
+        </span>
+      </a>
+
+      <nav class="primary-nav" aria-label="Primary navigation">
+        <a class="is-active" href="#portfolio-viewer">Work</a>
+        <a href="#about">About</a>
+        <a class="resume-link" href="assets/Luis_Albos_Resume.pdf">Resume</a>
+        <a href="#contact">Contact</a>
+        <a class="download-link pdf-link" href="assets/Luis_Albos_Engineering_Portfolio.pdf" download>
+          Download PDF <span aria-hidden="true">↓</span>
+        </a>
+      </nav>
+
+      <button class="menu-button" id="menu-button" type="button" aria-label="Open portfolio menu" aria-expanded="false" aria-controls="mobile-drawer">
+        <span></span><span></span>
+      </button>
+    </header>
+
+    <div class="portfolio-layout" id="work">
+      <aside class="portfolio-sidebar" id="desktop-sidebar" aria-label="Luis Albos portfolio navigation">
+        <div class="sidebar-heading">
+          <p class="eyebrow">Portfolio</p>
+          <p class="sidebar-page-count" aria-live="polite">
+            <span class="current-page-display">01</span><span class="count-divider">/</span><span class="total-pages-display">31</span>
+          </p>
+          <div class="progress-track" aria-hidden="true"><span class="progress-bar"></span></div>
+        </div>
+
+        <div class="sidebar-tools" aria-label="Viewer tools">
+          <button class="tool-button thumbnails-button" type="button" aria-label="Show page thumbnails" aria-expanded="false">
+            <span class="grid-icon" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          </button>
+          <span class="tool-separator" aria-hidden="true"></span>
+          <button class="tool-button search-button" type="button" aria-label="Search chapters and pages">
+            <span class="search-icon" aria-hidden="true"></span>
+          </button>
+          <button class="tool-button fullscreen-button" type="button" aria-label="Enter fullscreen">
+            <span class="fullscreen-icon" aria-hidden="true"></span>
+          </button>
+        </div>
+
+        <div class="sidebar-scroll">
+          <nav class="chapter-nav" aria-label="Portfolio chapters"></nav>
+          <section class="thumbnail-grid" aria-label="Page thumbnails" hidden></section>
+        </div>
+
+        <button class="current-thumbnail" type="button" aria-label="Show all page thumbnails">
+          <span class="thumbnail-media"></span>
+          <span class="thumbnail-caption"><span>Selected page</span><b class="current-page-padded">01</b></span>
+        </button>
+      </aside>
+
+      <main class="viewer-main" id="portfolio-viewer" tabindex="-1">
+        <section class="viewer-stage" aria-label="Luis Albos Engineering Portfolio page viewer" aria-roledescription="image gallery">
+          <div class="image-frame" id="image-frame" aria-live="polite">
+            <div class="loading-indicator" role="status">Loading page</div>
+            <img id="portfolio-page" alt="Luis Albos Engineering Portfolio, page 01 of 31: Cover" draggable="false">
+            <div class="page-fallback" id="page-fallback" hidden>
+              <div class="fallback-index" aria-hidden="true">I</div>
+              <div class="fallback-copy">
+                <p class="eyebrow">Portfolio page <span class="fallback-page-number">01</span></p>
+                <h1>Artwork ready<br>when you are.</h1>
+                <p>Add <code>page-01.webp</code> to <code>assets/portfolio/</code>. The viewer will load it automatically.</p>
+              </div>
+              <span class="fallback-corner">Luis Albos / Engineering Portfolio</span>
+            </div>
+          </div>
+
+          <div class="viewer-controls">
+            <div class="direction-controls" aria-label="Page navigation">
+              <button class="previous-button" type="button" aria-label="Previous page"><span aria-hidden="true">←</span></button>
+              <button class="next-button" type="button" aria-label="Next page"><span aria-hidden="true">→</span></button>
+            </div>
+
+            <form class="page-jump-form" aria-label="Jump to page">
+              <label class="visually-hidden" for="page-input">Page number</label>
+              <input id="page-input" type="number" inputmode="numeric" min="1" value="1" aria-label="Current page">
+              <span aria-hidden="true">/</span>
+              <span class="total-pages-display">31</span>
+            </form>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <section class="about-section" id="about" aria-labelledby="about-title">
+      <div>
+        <p class="eyebrow">About / Luis Albos</p>
+        <h2 id="about-title">Aerospace &amp;<br>Mechatronics Engineering.</h2>
+      </div>
+      <div class="about-copy">
+        <p>Multidisciplinary aerospace professional with experience spanning hands-on aircraft engineering, mechatronics, robotics, technical leadership, and digital tools.</p>
+      </div>
+    </section>
+
+    <footer class="site-footer" id="contact">
+      <p>© 2026 Luis Albos</p>
+      <p class="footer-note">Aerospace &amp; Mechatronics Engineering</p>
+      <nav class="social-links" aria-label="Social links">
+        <a class="linkedin-link" href="https://www.linkedin.com/in/luis-albos" target="_blank" rel="noreferrer" aria-label="Luis Albos on LinkedIn"><span class="social-icon" aria-hidden="true">in</span><span>LinkedIn</span></a>
+        <a class="email-link" href="mailto:luis.e.albos@gmail.com" aria-label="Email Luis Albos"><span class="social-icon" aria-hidden="true">@</span><span>Email</span></a>
+        <a class="github-link" href="https://github.com/YOUR-USERNAME" target="_blank" rel="noreferrer" aria-label="GitHub profile — replace placeholder URL in script.js"><span class="social-icon social-icon-wide" aria-hidden="true">GH</span><span>GitHub</span></a>
+      </nav>
+    </footer>
+
+    <div class="drawer-backdrop" id="drawer-backdrop" hidden></div>
+    <aside class="mobile-drawer" id="mobile-drawer" aria-label="Luis Albos mobile portfolio navigation" aria-hidden="true" inert>
+      <div class="drawer-header">
+        <div>
+          <p class="eyebrow">Portfolio</p>
+          <p><span class="current-page-display">01</span> / <span class="total-pages-display">31</span></p>
+        </div>
+        <button class="drawer-close" type="button" aria-label="Close portfolio menu">×</button>
+      </div>
+      <div class="progress-track" aria-hidden="true"><span class="progress-bar"></span></div>
+      <nav class="mobile-primary-nav" aria-label="Mobile primary navigation">
+        <a href="#portfolio-viewer">Work</a>
+        <a href="#about">About</a>
+        <a class="resume-link" href="assets/Luis_Albos_Resume.pdf">Resume</a>
+        <a href="#contact">Contact</a>
+        <a class="pdf-link" href="assets/Luis_Albos_Engineering_Portfolio.pdf" download>Download PDF ↓</a>
+      </nav>
+      <p class="drawer-label">Chapters</p>
+      <nav class="chapter-nav" aria-label="Portfolio chapters"></nav>
+      <div class="drawer-tools">
+        <button class="search-button" type="button">Search</button>
+        <button class="fullscreen-button" type="button">Fullscreen</button>
+      </div>
+    </aside>
+
+    <dialog class="search-dialog" id="search-dialog" aria-labelledby="search-title">
+      <form method="dialog" class="search-dialog-inner">
+        <div class="search-dialog-header">
+          <div>
+            <p class="eyebrow">Navigate</p>
+            <h2 id="search-title">Find a chapter or page</h2>
+          </div>
+          <button class="search-close" value="close" aria-label="Close search">×</button>
+        </div>
+        <label for="search-input">Search by chapter title, Roman numeral, or page number</label>
+        <input id="search-input" type="search" autocomplete="off" placeholder="Try “CanSat” or “23”">
+        <div class="search-results" role="listbox" aria-label="Search results"></div>
+      </form>
+    </dialog>
+  </body>
+</html>
