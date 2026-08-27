@@ -11,7 +11,7 @@ A fast, responsive viewer for the 31-page Luis Albos Engineering Portfolio. It i
    - …
    - `page-31.webp`
 3. Optionally place smaller matching images in `assets/thumbnails/` using the same one-based filenames. If a separate thumbnail is unavailable, the viewer automatically uses its full-size portfolio page.
-4. Place the optimized downloadable portfolio at `assets/Luis_Albos_Engineering_Portfolio.pdf`.
+4. The portfolio is intentionally available only through the WebP viewer and its exported page images.
 5. The resume viewer uses the repository's existing `assets/portfolio/Luis_Albos_Resume.pdf` file.
 
 Page filenames, visible labels, chapter ranges, the page-jump field, and URL hashes such as `#page=15` all use the same one-based numbering.
@@ -27,7 +27,7 @@ Open `script.js` and edit the `portfolioConfig` object at the top to control:
 - `totalPages`: the number of portfolio images
 - `initialPage`: the default page when there is no URL hash
 - `pagePath` and `thumbnailPath`: centralized one-based page filename generation
-- `pdfUrl` and `resumePageUrl`: values sourced from `site-config.js`
+- `resumePageUrl`: the dedicated resume page sourced from `site-config.js`
 - `chapters`: Roman numerals, navigation titles, page ranges, and portfolio details
 - `links`: LinkedIn, email, and GitHub destinations
 

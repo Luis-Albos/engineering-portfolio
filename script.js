@@ -10,7 +10,6 @@ const portfolioConfig = {
   initialPage: 1,
   pagePath: page => pageAssetPath("assets/portfolio", page),
   thumbnailPath: page => pageAssetPath("assets/thumbnails", page),
-  pdfUrl: SITE_CONFIG.portfolioPdfUrl,
   resumePageUrl: SITE_CONFIG.resumePageUrl,
   chapters: [
     { roman: "", title: "Cover", fullTitle: "Luis Albos Engineering Portfolio", startPage: 1, endPage: 1, isFrontMatter: true },
@@ -35,13 +34,17 @@ const portfolioConfig = {
   const state = {
     currentPage: getPageFromHash() || config.initialPage,
     requestToken: 0,
+    initialized: false,
+    imageReady: false,
+    activeImageSlot: 0,
+    imageTransitionTimer: null,
     thumbnailsBuilt: false,
     touchStartX: 0,
     touchStartY: 0
   };
 
   const elements = {
-    pageImage: document.querySelector("#portfolio-page"),
+    pageImages: Array.from(document.querySelectorAll(".portfolio-page-image")),
     imageFrame: document.querySelector("#image-frame"),
     fallback: document.querySelector("#page-fallback"),
     fallbackNumber: document.querySelector(".fallback-page-number"),
@@ -118,7 +121,6 @@ const portfolioConfig = {
 
   function applyConfiguration() {
     document.querySelectorAll(".total-pages-display").forEach(node => { node.textContent = config.totalPages; });
-    document.querySelectorAll(".pdf-link").forEach(link => { link.href = config.pdfUrl; });
     document.querySelectorAll(".resume-link").forEach(link => { link.href = config.resumePageUrl; });
     document.querySelectorAll(".linkedin-link").forEach(link => { link.href = config.links.linkedin; });
     document.querySelectorAll(".email-link").forEach(link => { link.href = config.links.email; });
@@ -205,13 +207,70 @@ const portfolioConfig = {
 
   function navigateTo(page, options = {}) {
     const target = clamp(Number.parseInt(page, 10) || 1, 1, config.totalPages);
-    state.currentPage = target;
-    renderPage();
+    const pageChanged = target !== state.currentPage;
     const canonicalHash = `#page=${target}`;
     const hasPageHash = /^#page=/i.test(window.location.hash);
-    if (!options.fromHash || (hasPageHash && window.location.hash !== canonicalHash)) {
+
+    if (state.initialized && !pageChanged) {
+      if (options.fromHash && hasPageHash && window.location.hash !== canonicalHash) {
+        history.replaceState(null, "", `${window.location.pathname}${window.location.search}${canonicalHash}`);
+      }
+      return;
+    }
+
+    state.currentPage = target;
+    state.initialized = true;
+    renderPage();
+
+    if (!options.fromHash && pageChanged) {
+      history.pushState(null, "", `${window.location.pathname}${window.location.search}${canonicalHash}`);
+    } else if (options.fromHash && hasPageHash && window.location.hash !== canonicalHash) {
       history.replaceState(null, "", `${window.location.pathname}${window.location.search}${canonicalHash}`);
     }
+  }
+
+  function settleImageTransition() {
+    window.clearTimeout(state.imageTransitionTimer);
+    state.imageTransitionTimer = null;
+    elements.pageImages.forEach((image, index) => {
+      const isActive = index === state.activeImageSlot;
+      image.classList.toggle("is-loaded", isActive && state.imageReady);
+      if (!isActive) {
+        image.removeAttribute("src");
+        image.alt = "";
+      }
+    });
+  }
+
+  function displayLoadedPage(page, pagePath, loader) {
+    if (state.imageReady) settleImageTransition();
+
+    const outgoingSlot = state.activeImageSlot;
+    const incomingSlot = state.imageReady ? 1 - outgoingSlot : outgoingSlot;
+    const outgoingImage = elements.pageImages[outgoingSlot];
+    const incomingImage = elements.pageImages[incomingSlot];
+    const activeChapter = getActiveChapter(page);
+
+    incomingImage.classList.remove("is-loaded");
+    incomingImage.src = pagePath;
+    incomingImage.alt = `Luis Albos Engineering Portfolio, page ${formatVisiblePage(page)} of ${config.totalPages}: ${activeChapter.fullTitle || activeChapter.title}`;
+    elements.imageFrame.style.setProperty("--page-ratio", String(loader.naturalWidth / loader.naturalHeight));
+    elements.imageFrame.classList.remove("is-loading");
+    state.imageReady = true;
+    state.activeImageSlot = incomingSlot;
+
+    if (prefersReducedMotion() || incomingImage === outgoingImage) {
+      incomingImage.classList.add("is-loaded");
+      settleImageTransition();
+      return;
+    }
+
+    outgoingImage.alt = "";
+    requestAnimationFrame(() => {
+      incomingImage.classList.add("is-loaded");
+      outgoingImage.classList.remove("is-loaded");
+      state.imageTransitionTimer = window.setTimeout(settleImageTransition, 210);
+    });
   }
 
   function renderPage() {
@@ -219,11 +278,11 @@ const portfolioConfig = {
     const pagePath = config.pagePath(page);
     const token = ++state.requestToken;
 
-    elements.imageFrame.classList.add("is-loading");
-    elements.imageFrame.style.setProperty("--page-ratio", "1.6");
-    elements.pageImage.classList.remove("is-loaded");
+    if (!state.imageReady) {
+      elements.imageFrame.classList.add("is-loading");
+      elements.imageFrame.style.setProperty("--page-ratio", "1.6");
+    }
     elements.fallback.hidden = true;
-    elements.pageImage.removeAttribute("src");
 
     updateInterface(page);
 
@@ -233,11 +292,7 @@ const portfolioConfig = {
       if (token !== state.requestToken) return;
       try { await loader.decode(); } catch (_) { /* The image is still usable. */ }
       if (token !== state.requestToken) return;
-      elements.pageImage.src = pagePath;
-      elements.pageImage.alt = `Luis Albos Engineering Portfolio, page ${formatVisiblePage(page)} of ${config.totalPages}: ${getActiveChapter(page).fullTitle || getActiveChapter(page).title}`;
-      elements.imageFrame.style.setProperty("--page-ratio", String(loader.naturalWidth / loader.naturalHeight));
-      requestAnimationFrame(() => elements.pageImage.classList.add("is-loaded"));
-      elements.imageFrame.classList.remove("is-loading");
+      displayLoadedPage(page, pagePath, loader);
       updateCurrentThumbnail(page);
       preloadAdjacent(page);
     };
@@ -250,8 +305,13 @@ const portfolioConfig = {
   }
 
   function showFallback(page, pagePath) {
-    elements.pageImage.removeAttribute("src");
-    elements.pageImage.alt = "";
+    window.clearTimeout(state.imageTransitionTimer);
+    state.imageReady = false;
+    elements.pageImages.forEach(image => {
+      image.classList.remove("is-loaded");
+      image.removeAttribute("src");
+      image.alt = "";
+    });
     elements.fallback.hidden = false;
     elements.fallbackNumber.textContent = page;
     elements.fallbackIndex.textContent = getActiveChapter(page).roman || formatVisiblePage(page);
@@ -419,6 +479,12 @@ const portfolioConfig = {
       navigateTo(elements.pageInput.value);
       elements.pageInput.blur();
     });
+    elements.pageInput.addEventListener("keydown", event => {
+      if (event.key !== "Enter") return;
+      event.preventDefault();
+      navigateTo(elements.pageInput.value);
+      elements.pageInput.blur();
+    });
     elements.pageInput.addEventListener("change", () => navigateTo(elements.pageInput.value));
 
     document.querySelectorAll(".thumbnails-button").forEach(button => button.addEventListener("click", () => toggleThumbnails()));
@@ -435,6 +501,7 @@ const portfolioConfig = {
     window.addEventListener("hashchange", () => {
       const page = getPageFromHash();
       if (page !== null) navigateTo(page, { fromHash: true });
+      else if (!window.location.hash) navigateTo(config.initialPage, { fromHash: true });
     });
 
     document.addEventListener("keydown", event => {

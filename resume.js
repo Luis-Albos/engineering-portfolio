@@ -9,7 +9,6 @@
   const drawerClose = document.querySelector(".drawer-close");
 
   document.querySelectorAll(".resume-asset-link").forEach(link => { link.href = config.resumeAssetUrl; });
-  document.querySelectorAll(".portfolio-pdf-link").forEach(link => { link.href = config.portfolioPdfUrl; });
   document.querySelectorAll(".linkedin-link").forEach(link => { link.href = config.links.linkedin; });
   document.querySelectorAll(".email-link").forEach(link => { link.href = config.links.email; });
   document.querySelectorAll(".github-link").forEach(link => { link.href = config.links.github; });
