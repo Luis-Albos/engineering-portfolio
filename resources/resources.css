@@ -65,7 +65,7 @@
 .archive-exit { justify-self: end; color: #aeb8be; font-size: 9px; letter-spacing: .13em; text-transform: uppercase; }
 
 .archive-layout { min-height: calc(100svh - 82px); display: grid; grid-template-columns: minmax(250px, 20vw) minmax(500px, 1fr) minmax(280px, 22vw); }
-.library-navigation { position: sticky; top: 82px; height: calc(100svh - 82px); display: flex; flex-direction: column; gap: 28px; padding: 38px 26px 24px 34px; background: #111519; border-right: 1px solid #262c31; overflow-y: auto; }
+.library-navigation { position: sticky; top: 82px; height: calc(100svh - 82px); display: flex; flex-direction: column; gap: 28px; padding: 38px 34px 24px; background: #111519; border-right: 1px solid #262c31; overflow-y: auto; scrollbar-gutter: stable; }
 .library-navigation h1 { margin: 13px 0 17px; font-family: var(--serif); font-size: clamp(39px, 4vw, 59px); font-weight: 400; line-height: .92; letter-spacing: -.035em; text-transform: uppercase; }
 .library-description { margin: 0; color: #9fa7ad; font-size: 12px; line-height: 1.65; }
 .archive-search span, .mobile-class-control span { display: block; margin-bottom: 7px; color: #858e94; font-size: 9px; letter-spacing: .14em; text-transform: uppercase; }

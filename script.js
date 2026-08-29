@@ -55,8 +55,6 @@ const portfolioConfig = {
     next: document.querySelector(".next-button"),
     chapterNavs: document.querySelectorAll(".chapter-nav"),
     thumbnailGrid: document.querySelector(".thumbnail-grid"),
-    currentThumbnail: document.querySelector(".current-thumbnail"),
-    thumbnailMedia: document.querySelector(".current-thumbnail .thumbnail-media"),
     drawer: document.querySelector("#mobile-drawer"),
     drawerBackdrop: document.querySelector("#drawer-backdrop"),
     menuButton: document.querySelector("#menu-button"),
@@ -293,7 +291,6 @@ const portfolioConfig = {
       try { await loader.decode(); } catch (_) { /* The image is still usable. */ }
       if (token !== state.requestToken) return;
       displayLoadedPage(page, pagePath, loader);
-      updateCurrentThumbnail(page);
       preloadAdjacent(page);
     };
     loader.onerror = () => {
@@ -318,12 +315,10 @@ const portfolioConfig = {
     elements.fallbackCode.textContent = pagePath.split("/").pop();
     elements.imageFrame.style.setProperty("--page-ratio", "1.6");
     elements.imageFrame.classList.remove("is-loading");
-    updateCurrentThumbnail(page);
   }
 
   function updateInterface(page) {
     document.querySelectorAll(".current-page-display").forEach(node => { node.textContent = formatVisiblePage(page); });
-    document.querySelectorAll(".current-page-padded").forEach(node => { node.textContent = formatVisiblePage(page); });
     document.querySelectorAll(".progress-bar").forEach(bar => { bar.style.width = `${(page / config.totalPages) * 100}%`; });
     elements.pageInput.value = page;
     elements.previous.disabled = page <= 1;
@@ -352,20 +347,6 @@ const portfolioConfig = {
       onMissing();
     });
     image.src = config.thumbnailPath(page);
-  }
-
-  function updateCurrentThumbnail(page) {
-    elements.thumbnailMedia.replaceChildren();
-    elements.thumbnailMedia.classList.remove("is-missing");
-    elements.thumbnailMedia.dataset.page = formatVisiblePage(page);
-
-    const image = new Image();
-    image.alt = "";
-    loadThumbnailImage(image, page, () => {
-      elements.thumbnailMedia.classList.add("is-missing");
-      image.remove();
-    });
-    elements.thumbnailMedia.append(image);
   }
 
   function updateThumbnailSelection() {
@@ -488,7 +469,6 @@ const portfolioConfig = {
     elements.pageInput.addEventListener("change", () => navigateTo(elements.pageInput.value));
 
     document.querySelectorAll(".thumbnails-button").forEach(button => button.addEventListener("click", () => toggleThumbnails()));
-    elements.currentThumbnail.addEventListener("click", () => toggleThumbnails(true));
     document.querySelectorAll(".search-button").forEach(button => button.addEventListener("click", openSearch));
     document.querySelectorAll(".fullscreen-button").forEach(button => button.addEventListener("click", toggleFullscreen));
     elements.searchInput.addEventListener("input", event => renderSearchResults(event.target.value));
