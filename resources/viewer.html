@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#111315">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <title>Study Document - Luis Albos</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="resources.css">
+    <script src="resources-config.js" defer></script>
+    <script src="../page-transitions.js" defer></script>
+    <script src="viewer.js" defer></script>
+  </head>
+  <body class="archive-page document-page page-enter">
+    <header class="archive-header document-header">
+      <a class="archive-brand" href="../" aria-label="Luis Albos Engineering Portfolio">
+        <span>Luis Albos</span>
+        <small>Engineering Portfolio</small>
+      </a>
+      <div class="document-heading">
+        <p id="viewer-class">Study Archive</p>
+        <h1 id="viewer-title">Loading document...</h1>
+      </div>
+      <div class="document-actions">
+        <a href="./">Back to Archive</a>
+        <a id="viewer-open" href="#" target="_blank" rel="noreferrer">Open PDF <span aria-hidden="true">&#8599;</span></a>
+      </div>
+    </header>
+    <main class="document-viewer" id="document-viewer">
+      <div class="viewer-message" id="viewer-message" role="status">Preparing document...</div>
+      <object id="study-pdf" type="application/pdf" aria-label="Selected study PDF" hidden>
+        <div class="pdf-fallback">
+          <p class="archive-kicker">PDF Preview Unavailable</p>
+          <h2>Open the document directly.</h2>
+          <p>This browser cannot display the embedded PDF viewer.</p>
+          <a id="viewer-fallback-open" href="#" target="_blank" rel="noreferrer">Open PDF <span aria-hidden="true">&#8599;</span></a>
+        </div>
+      </object>
+    </main>
+  </body>
+</html>

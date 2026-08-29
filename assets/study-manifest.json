@@ -1,0 +1,122 @@
+{
+  "version": 1,
+  "generatedAt": "2026-08-29T04:46:41+00:00",
+  "classCount": 5,
+  "resourceCount": 7,
+  "classes": [
+    {
+      "id": "eset-462-control-systems",
+      "folderName": "ESET 462 - Control Systems",
+      "displayName": "ESET 462 — Control Systems",
+      "description": "",
+      "semester": "",
+      "tags": [],
+      "order": null,
+      "resourceCount": 1,
+      "documents": [
+        {
+          "id": "eset-462-control-systems--eset462-midterm-formulasheet",
+          "title": "ESET462_Midterm_FormulaSheet",
+          "path": "assets/study/ESET 462 - Control Systems/ESET462_Midterm_FormulaSheet.pdf",
+          "thumbnailPath": "assets/study-thumbnails/eset-462-control-systems/eset462-midterm-formulasheet.webp",
+          "pageCount": 1,
+          "fileSizeBytes": 332485
+        }
+      ]
+    },
+    {
+      "id": "mmet-363-mechanical-design-applications",
+      "folderName": "MMET 363 - Mechanical Design Applications",
+      "displayName": "MMET 363 — Mechanical Design Applications",
+      "description": "",
+      "semester": "",
+      "tags": [],
+      "order": null,
+      "resourceCount": 0,
+      "documents": []
+    },
+    {
+      "id": "mmet-376-strength-of-materials",
+      "folderName": "MMET 376 - Strength of Materials",
+      "displayName": "MMET 376 — Strength of Materials",
+      "description": "",
+      "semester": "",
+      "tags": [],
+      "order": null,
+      "resourceCount": 0,
+      "documents": []
+    },
+    {
+      "id": "mxet-300-mechatronics-1",
+      "folderName": "MXET 300 - Mechatronics 1",
+      "displayName": "MXET 300 — Mechatronics 1",
+      "description": "",
+      "semester": "",
+      "tags": [],
+      "order": null,
+      "resourceCount": 3,
+      "documents": [
+        {
+          "id": "mxet-300-mechatronics-1--mxet-300-final-cheat-sheet-v2",
+          "title": "MXET 300 Final Cheat Sheet v2",
+          "path": "assets/study/MXET 300 - Mechatronics 1/MXET 300 Final Cheat Sheet v2.pdf",
+          "thumbnailPath": "assets/study-thumbnails/mxet-300-mechatronics-1/mxet-300-final-cheat-sheet-v2.webp",
+          "pageCount": 2,
+          "fileSizeBytes": 1024736
+        },
+        {
+          "id": "mxet-300-mechatronics-1--mxet-300-midterm-1-formula-sheet-v2",
+          "title": "MXET 300 Midterm 1 Formula Sheet v2",
+          "path": "assets/study/MXET 300 - Mechatronics 1/MXET 300 Midterm 1 Formula Sheet v2.pdf",
+          "thumbnailPath": "assets/study-thumbnails/mxet-300-mechatronics-1/mxet-300-midterm-1-formula-sheet-v2.webp",
+          "pageCount": 1,
+          "fileSizeBytes": 382279
+        },
+        {
+          "id": "mxet-300-mechatronics-1--mxet-300-midterm-1-formula-sheet",
+          "title": "MXET 300 Midterm 1 Formula Sheet",
+          "path": "assets/study/MXET 300 - Mechatronics 1/MXET 300 Midterm 1 Formula Sheet.pdf",
+          "thumbnailPath": "assets/study-thumbnails/mxet-300-mechatronics-1/mxet-300-midterm-1-formula-sheet.webp",
+          "pageCount": 1,
+          "fileSizeBytes": 353737
+        }
+      ]
+    },
+    {
+      "id": "mxet-375-applied-dynamic-systems",
+      "folderName": "MXET 375 - Applied Dynamic Systems",
+      "displayName": "MXET 375 — Applied Dynamic Systems",
+      "description": "",
+      "semester": "",
+      "tags": [],
+      "order": null,
+      "resourceCount": 3,
+      "documents": [
+        {
+          "id": "mxet-375-applied-dynamic-systems--mxet-375-exam-1-formula-sheet",
+          "title": "MXET 375 Exam 1 Formula Sheet",
+          "path": "assets/study/MXET 375 - Applied Dynamic Systems/MXET 375 Exam 1 Formula Sheet.pdf",
+          "thumbnailPath": "assets/study-thumbnails/mxet-375-applied-dynamic-systems/mxet-375-exam-1-formula-sheet.webp",
+          "pageCount": 1,
+          "fileSizeBytes": 267023
+        },
+        {
+          "id": "mxet-375-applied-dynamic-systems--mxet-375-exam-2-formula-sheet-v5",
+          "title": "MXET 375 Exam 2 Formula Sheet v5",
+          "path": "assets/study/MXET 375 - Applied Dynamic Systems/MXET 375 Exam 2 Formula Sheet v5.pdf",
+          "thumbnailPath": "assets/study-thumbnails/mxet-375-applied-dynamic-systems/mxet-375-exam-2-formula-sheet-v5.webp",
+          "pageCount": 1,
+          "fileSizeBytes": 473270
+        },
+        {
+          "id": "mxet-375-applied-dynamic-systems--mxet-375-exam-3-formula-sheet-v2",
+          "title": "MXET 375 Exam 3 Formula Sheet v2",
+          "path": "assets/study/MXET 375 - Applied Dynamic Systems/MXET 375 Exam 3 Formula Sheet v2.pdf",
+          "thumbnailPath": "assets/study-thumbnails/mxet-375-applied-dynamic-systems/mxet-375-exam-3-formula-sheet-v2.webp",
+          "pageCount": 1,
+          "fileSizeBytes": 477209
+        }
+      ]
+    }
+  ]
+}

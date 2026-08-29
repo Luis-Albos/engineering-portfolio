@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /engineering-portfolio/resources/
+Disallow: /engineering-portfolio/assets/study/
+Disallow: /engineering-portfolio/assets/study-thumbnails/
+Disallow: /engineering-portfolio/assets/study-manifest.json

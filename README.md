@@ -1,6 +1,6 @@
 # Luis Albos Engineering Portfolio
 
-A fast, responsive viewer for the 31-page Luis Albos Engineering Portfolio. It is built with plain HTML, CSS, and JavaScript, with no dependencies, backend, or build process, and is ready for GitHub Pages.
+A fast, responsive viewer for the 31-page Luis Albos Engineering Portfolio. The public site is plain HTML, CSS, and JavaScript with no backend. A small Python build step generates the private-ish Study Archive index and thumbnails for GitHub Pages.
 
 ## Add portfolio pages
 
@@ -37,7 +37,7 @@ The LinkedIn and email links are configured for Luis Albos. The GitHub URL inten
 
 ## Run locally
 
-Opening `index.html` directly works in most browsers. A small local server more closely matches GitHub Pages:
+The portfolio can be opened directly, but the Study Archive manifest must be fetched over HTTP. Use a small local server:
 
 ```bash
 python -m http.server 8000
@@ -45,13 +45,68 @@ python -m http.server 8000
 
 Then visit `http://localhost:8000`.
 
+## Adding Study Resources
+
+The normal upload workflow requires no HTML, JavaScript, manifest, or thumbnail edits.
+
+1. Put each PDF inside an immediate course folder using this pattern:
+
+   ```text
+   assets/study/<COURSE NAME>/<DOCUMENT>.pdf
+   ```
+
+   Example:
+
+   ```text
+   assets/study/ESET 462 - Control Systems/Final Formula Sheet.pdf
+   ```
+
+2. To add a new class, create one new folder directly inside `assets/study/` and place PDFs in it. The folder name becomes the class name. A spaced hyphen is displayed as an editorial em dash, so `ESET 462 - Control Systems` appears as `ESET 462 — Control Systems`.
+
+3. Commit and push normally:
+
+   ```bash
+   git add .
+   git commit -m "Add formula sheets"
+   git push
+   ```
+
+The GitHub Pages workflow then runs `scripts/build_study_archive.py`, detects every PDF, counts its pages, records its file size, creates a first-page WebP thumbnail under `assets/study-thumbnails/`, regenerates `assets/study-manifest.json`, and deploys those generated files with the site.
+
+Every immediate folder is treated as a class, and every PDF directly inside it becomes a resource. Class names come from folder names; document titles come from PDF filenames. Natural sorting keeps names such as Exam 1, Exam 2, and Exam 10 in the expected order.
+
+`.gitkeep` is not required when a folder contains real files. Its only purpose is to preserve an otherwise-empty folder in Git. It is ignored by the generator.
+
+Do not manually edit `assets/study-manifest.json` or anything under `assets/study-thumbnails/`; both are generated outputs.
+
+Optional class metadata can be added as `class.json` inside a class folder:
+
+```json
+{
+  "displayName": "ESET 462 — Control Systems",
+  "description": "Feedback control, system modeling, and controller design.",
+  "order": 10,
+  "semester": "Spring 2026",
+  "tags": ["controls", "feedback"]
+}
+```
+
+`class.json` is completely optional. All fields inside it are optional too. Missing or malformed metadata is ignored without stopping the remaining archive build.
+
+No local build command is required for the normal push-to-deploy workflow. To preview newly added documents locally before pushing, run:
+
+```bash
+python -m pip install -r requirements-study.txt
+python scripts/build_study_archive.py
+```
+
+The archive lives at `resources/`. Its Request Access sequence stores a session flag in `sessionStorage`, so it is shown once per browser session.
+
 ## Deploy with GitHub Pages
 
-1. Create a GitHub repository and commit all files in this folder.
-2. Push the repository to GitHub.
-3. In the repository, open **Settings → Pages**.
-4. Under **Build and deployment**, choose **Deploy from a branch**.
-5. Select your default branch (usually `main`) and the root `/` folder, then save.
+1. Commit all files and push the repository to GitHub.
+2. As a one-time repository setting, open **Settings → Pages** and choose **GitHub Actions** as the source. Branch-based Pages deployment does not run the Study Archive generator.
+3. Push to the `main` branch. `.github/workflows/pages.yml` generates the Study Archive and deploys the complete static site.
 
 GitHub will publish the site at `https://YOUR-USERNAME.github.io/REPOSITORY-NAME/`. All asset paths are relative, so the viewer works from a repository subpath without changes.
 

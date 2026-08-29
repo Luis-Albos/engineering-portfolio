@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#111315">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <meta name="description" content="Private study archive shared with underclassmen.">
+    <title>Study Archive - Luis Albos</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="resources.css">
+    <script src="resources-config.js" defer></script>
+    <script src="../page-transitions.js" defer></script>
+    <script src="archive.js" defer></script>
+  </head>
+  <body class="archive-page page-enter">
+    <a class="skip-link" href="#archive-content">Skip to study resources</a>
+
+    <header class="archive-header">
+      <a class="archive-brand" href="../" aria-label="Luis Albos Engineering Portfolio">
+        <span>Luis Albos</span>
+        <small>Study Archive</small>
+      </a>
+      <nav class="primary-nav archive-primary-nav" aria-label="Primary navigation">
+        <a href="../">Work</a>
+        <a href="../index.html#about">About</a>
+        <a href="../resume.html">Resume</a>
+        <a href="../index.html#contact">Contact</a>
+        <a class="is-active" href="./" aria-current="page">Resources</a>
+      </nav>
+      <button class="menu-button" id="menu-button" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="mobile-drawer">
+        <span></span><span></span>
+      </button>
+    </header>
+
+    <main id="archive-content" tabindex="-1">
+      <section class="archive-lock" id="archive-lock" aria-labelledby="lock-title">
+        <div class="lock-panel">
+          <div class="lock-mark" aria-hidden="true"><span></span></div>
+          <p class="archive-kicker">Restricted / Academic Reference</p>
+          <h1 id="lock-title">Study Archive</h1>
+          <p class="lock-intro">Private archive shared with underclassmen.</p>
+          <div class="access-control">
+            <button class="request-access-button" id="request-access" type="button">
+              <span id="access-button-label">Request Access</span>
+              <span class="access-symbol" id="access-symbol" aria-hidden="true">&#8594;</span>
+            </button>
+            <div class="access-progress" aria-hidden="true"><span></span></div>
+            <p class="visually-hidden" id="access-announcement" aria-live="polite"></p>
+          </div>
+          <a class="return-link" href="../">Return to Engineering Portfolio</a>
+        </div>
+      </section>
+
+      <div class="archive-shell" id="archive-shell" hidden>
+        <div class="archive-layout" id="archive-library" tabindex="-1">
+          <aside class="library-navigation" aria-labelledby="library-nav-title">
+            <div>
+              <p class="archive-kicker">Personal Reference Library</p>
+              <h1 id="library-nav-title">Study<br>Archive</h1>
+              <p class="library-description">Private library of formula sheets, quick references, and study resources used during my time in undergrad.</p>
+            </div>
+
+            <label class="archive-search" for="resource-search">
+              <span>Search library</span>
+              <input id="resource-search" type="search" autocomplete="off" placeholder="Course, code, or document">
+            </label>
+
+            <nav class="class-filters" id="class-filters" aria-label="Filter resources by class"></nav>
+
+          </aside>
+
+          <section class="resource-column" aria-labelledby="resource-library-title">
+            <div class="resource-toolbar">
+              <div>
+                <p class="archive-kicker">Library Index / <span id="visible-count">0</span> Resources</p>
+                <h2 id="resource-library-title">All Classes</h2>
+              </div>
+              <label class="mobile-class-control" for="mobile-class-filter">
+                <span>Class</span>
+                <select id="mobile-class-filter"></select>
+              </label>
+            </div>
+            <div class="loading-state" id="library-loading" role="status">Reading archive manifest...</div>
+            <div class="resource-library" id="resource-library"></div>
+          </section>
+
+          <aside class="selected-panel" aria-labelledby="selected-panel-title">
+            <div class="selected-empty" id="selected-empty">
+              <p class="archive-kicker">Selected Document</p>
+              <h2 id="selected-panel-title">Choose a reference.</h2>
+              <p>Select a document card to inspect its details before opening the PDF.</p>
+            </div>
+            <div class="selected-document" id="selected-document" hidden>
+              <p class="archive-kicker">Selected Document</p>
+              <div class="selected-preview" id="selected-preview"></div>
+              <p class="selected-class" id="selected-class"></p>
+              <h2 id="selected-title"></h2>
+              <dl class="selected-metadata">
+                <div><dt>Pages</dt><dd id="selected-pages">-</dd></div>
+                <div><dt>File size</dt><dd id="selected-size">-</dd></div>
+              </dl>
+              <a class="open-document-button" id="selected-open" href="viewer.html">Open PDF <span aria-hidden="true">&#8599;</span></a>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </main>
+
+    <div class="drawer-backdrop" id="drawer-backdrop" hidden></div>
+    <aside class="mobile-drawer archive-drawer" id="mobile-drawer" aria-label="Luis Albos mobile navigation" aria-hidden="true" inert>
+      <div class="drawer-header">
+        <div>
+          <p class="eyebrow">Luis Albos</p>
+          <p>Resources</p>
+        </div>
+        <button class="drawer-close" type="button" aria-label="Close navigation menu">&times;</button>
+      </div>
+      <nav class="mobile-primary-nav" aria-label="Mobile primary navigation">
+        <a href="../">Work</a>
+        <a href="../index.html#about">About</a>
+        <a href="../resume.html">Resume</a>
+        <a href="../index.html#contact">Contact</a>
+        <a class="is-active" href="./" aria-current="page">Resources</a>
+      </nav>
+    </aside>
+  </body>
+</html>
