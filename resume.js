@@ -11,7 +11,6 @@
   document.querySelectorAll(".resume-asset-link").forEach(link => { link.href = config.resumeAssetUrl; });
   document.querySelectorAll(".linkedin-link").forEach(link => { link.href = config.links.linkedin; });
   document.querySelectorAll(".email-link").forEach(link => { link.href = config.links.email; });
-  document.querySelectorAll(".github-link").forEach(link => { link.href = config.links.github; });
   resumePdf.data = config.resumeAssetUrl;
 
   function openDrawer() {

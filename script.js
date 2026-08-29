@@ -122,7 +122,6 @@ const portfolioConfig = {
     document.querySelectorAll(".resume-link").forEach(link => { link.href = config.resumePageUrl; });
     document.querySelectorAll(".linkedin-link").forEach(link => { link.href = config.links.linkedin; });
     document.querySelectorAll(".email-link").forEach(link => { link.href = config.links.email; });
-    document.querySelectorAll(".github-link").forEach(link => { link.href = config.links.github; });
     elements.pageInput.max = config.totalPages;
   }
 
