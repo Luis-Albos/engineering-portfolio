@@ -32,24 +32,26 @@ const portfolioConfig = {
 
   const config = normalizeConfig(portfolioConfig);
   const state = {
-    currentPage: getPageFromHash() || config.initialPage,
+    currentPage: config.initialPage,
     requestToken: 0,
     initialized: false,
     imageReady: false,
     activeImageSlot: 0,
     imageTransitionTimer: null,
+    preloadTimer: null,
     thumbnailsBuilt: false,
     touchStartX: 0,
     touchStartY: 0
   };
+
+  // Share both pending loads and decoded images between navigation and prefetch.
+  const pageCache = new Map();
 
   const elements = {
     pageImages: Array.from(document.querySelectorAll(".portfolio-page-image")),
     imageFrame: document.querySelector("#image-frame"),
     fallback: document.querySelector("#page-fallback"),
     fallbackNumber: document.querySelector(".fallback-page-number"),
-    fallbackCode: document.querySelector(".fallback-copy code"),
-    fallbackIndex: document.querySelector(".fallback-index"),
     pageInput: document.querySelector("#page-input"),
     previous: document.querySelector(".previous-button"),
     next: document.querySelector(".next-button"),
@@ -231,89 +233,98 @@ const portfolioConfig = {
     state.imageTransitionTimer = null;
     elements.pageImages.forEach((image, index) => {
       const isActive = index === state.activeImageSlot;
+      // Finish an interrupted fade before reusing the other layer.
+      image.style.transition = "none";
       image.classList.toggle("is-loaded", isActive && state.imageReady);
-      if (!isActive) {
-        image.removeAttribute("src");
-        image.alt = "";
-      }
+      image.style.zIndex = isActive ? "1" : "0";
+      image.alt = isActive ? image.alt : "";
     });
+    void elements.imageFrame.offsetWidth;
+    elements.pageImages.forEach(image => { image.style.transition = ""; });
   }
 
-  function displayLoadedPage(page, pagePath, loader) {
-    if (state.imageReady) settleImageTransition();
+  function loadPageImage(page, priority = "low") {
+    if (pageCache.has(page)) {
+      const entry = pageCache.get(page);
+      if (priority === "high") entry.image.fetchPriority = "high";
+      return entry.ready;
+    }
+    const image = new Image();
+    image.decoding = "async";
+    image.fetchPriority = priority;
+    const ready = new Promise((resolve, reject) => {
+      image.onload = async () => {
+        try {
+          if (typeof image.decode === "function") await image.decode();
+        } catch (_) { /* A successfully loaded image can still be displayed. */ }
+        image.onload = image.onerror = null;
+        if (image.naturalWidth) resolve(image);
+        else reject(new Error("Image unavailable"));
+      };
+      image.onerror = () => {
+        image.onload = image.onerror = null;
+        reject(new Error("Image unavailable"));
+      };
+    }).catch(error => {
+      pageCache.delete(page); // Failed pages can be retried.
+      throw error;
+    });
+    pageCache.set(page, { image, ready });
+    image.src = config.pagePath(page);
+    return ready;
+  }
 
+  function displayLoadedPage(page, image, token) {
+    if (token !== state.requestToken) return;
+    settleImageTransition();
     const outgoingSlot = state.activeImageSlot;
-    const incomingSlot = state.imageReady ? 1 - outgoingSlot : outgoingSlot;
     const outgoingImage = elements.pageImages[outgoingSlot];
-    const incomingImage = elements.pageImages[incomingSlot];
+    if (image === outgoingImage && state.imageReady) return;
+    const incomingSlot = state.imageReady ? 1 - outgoingSlot : outgoingSlot;
+    const placeholder = elements.pageImages[incomingSlot];
     const activeChapter = getActiveChapter(page);
 
-    incomingImage.classList.remove("is-loaded");
-    incomingImage.src = pagePath;
-    incomingImage.alt = `Luis Albos Engineering Portfolio, page ${formatVisiblePage(page)} of ${config.totalPages}: ${activeChapter.fullTitle || activeChapter.title}`;
-    elements.imageFrame.style.setProperty("--page-ratio", String(loader.naturalWidth / loader.naturalHeight));
+    // Mount the exact decoded node, not a second image with the same URL.
+    image.className = "portfolio-page-image";
+    image.id = placeholder.id;
+    image.draggable = false;
+    image.style.zIndex = "2";
+    image.alt = `Luis Albos Engineering Portfolio, page ${formatVisiblePage(page)} of ${config.totalPages}: ${activeChapter.fullTitle || activeChapter.title}`;
+    placeholder.replaceWith(image);
+    elements.pageImages[incomingSlot] = image;
+    elements.imageFrame.style.setProperty("--page-ratio", String(image.naturalWidth / image.naturalHeight));
     elements.imageFrame.classList.remove("is-loading");
+    const hadImage = state.imageReady;
     state.imageReady = true;
     state.activeImageSlot = incomingSlot;
+    void image.offsetWidth;
+    image.classList.add("is-loaded");
 
-    if (prefersReducedMotion() || incomingImage === outgoingImage) {
-      incomingImage.classList.add("is-loaded");
-      settleImageTransition();
-      return;
-    }
-
-    outgoingImage.alt = "";
-    requestAnimationFrame(() => {
-      incomingImage.classList.add("is-loaded");
-      outgoingImage.classList.remove("is-loaded");
-      state.imageTransitionTimer = window.setTimeout(settleImageTransition, 210);
-    });
+    // Keep an opaque base underneath the fade to avoid a dark frame midway.
+    // The old layer disappears beneath the new one, then is cleaned up.
+    if (prefersReducedMotion() || !hadImage) settleImageTransition();
+    else state.imageTransitionTimer = window.setTimeout(() => {
+      if (token === state.requestToken) settleImageTransition();
+    }, 210);
   }
 
   function renderPage() {
     const page = state.currentPage;
-    const pagePath = config.pagePath(page);
     const token = ++state.requestToken;
-
-    if (!state.imageReady) {
-      elements.imageFrame.classList.add("is-loading");
-      elements.imageFrame.style.setProperty("--page-ratio", "1.6");
-    }
+    settleImageTransition();
+    elements.imageFrame.classList.toggle("is-loading", !state.imageReady);
     elements.fallback.hidden = true;
-
     updateInterface(page);
-
-    const loader = new Image();
-    loader.decoding = "async";
-    loader.onload = async () => {
+    loadPageImage(page, "high").then(image => {
       if (token !== state.requestToken) return;
-      try { await loader.decode(); } catch (_) { /* The image is still usable. */ }
+      displayLoadedPage(page, image, token);
+    }).catch(() => {
       if (token !== state.requestToken) return;
-      displayLoadedPage(page, pagePath, loader);
-      preloadAdjacent(page);
-    };
-    loader.onerror = () => {
-      if (token !== state.requestToken) return;
-      showFallback(page, pagePath);
-      preloadAdjacent(page);
-    };
-    loader.src = pagePath;
-  }
-
-  function showFallback(page, pagePath) {
-    window.clearTimeout(state.imageTransitionTimer);
-    state.imageReady = false;
-    elements.pageImages.forEach(image => {
-      image.classList.remove("is-loaded");
-      image.removeAttribute("src");
-      image.alt = "";
+      elements.imageFrame.classList.remove("is-loading");
+      elements.fallbackNumber.textContent = formatVisiblePage(page);
+      elements.fallback.hidden = false;
     });
-    elements.fallback.hidden = false;
-    elements.fallbackNumber.textContent = page;
-    elements.fallbackIndex.textContent = getActiveChapter(page).roman || formatVisiblePage(page);
-    elements.fallbackCode.textContent = pagePath.split("/").pop();
-    elements.imageFrame.style.setProperty("--page-ratio", "1.6");
-    elements.imageFrame.classList.remove("is-loading");
+    preloadAdjacent(page);
   }
 
   function updateInterface(page) {
@@ -359,10 +370,21 @@ const portfolioConfig = {
   }
 
   function preloadAdjacent(page) {
-    [page - 1, page + 1].filter(value => value >= 1 && value <= config.totalPages).forEach(value => {
-      const image = new Image();
-      image.src = config.pagePath(value);
-    });
+    if (state.preloadTimer !== null) {
+      if (typeof window.cancelIdleCallback === "function") window.cancelIdleCallback(state.preloadTimer);
+      else window.clearTimeout(state.preloadTimer);
+    }
+    const preload = () => {
+      state.preloadTimer = null;
+      if (page !== state.currentPage) return;
+      [-1, 1, -2, 2, -3, 3].forEach(offset => {
+        const nearby = page + offset;
+        if (nearby >= 1 && nearby <= config.totalPages) loadPageImage(nearby).catch(() => {});
+      });
+    };
+    state.preloadTimer = typeof window.requestIdleCallback === "function"
+      ? window.requestIdleCallback(preload, { timeout: 700 })
+      : window.setTimeout(preload, 150);
   }
 
   function openSearch() {
@@ -452,6 +474,7 @@ const portfolioConfig = {
   }
 
   function bindEvents() {
+    document.querySelector("#retry-page").addEventListener("click", renderPage);
     elements.previous.addEventListener("click", () => navigateTo(state.currentPage - 1));
     elements.next.addEventListener("click", () => navigateTo(state.currentPage + 1));
     elements.pageInput.closest("form").addEventListener("submit", event => {
@@ -515,5 +538,5 @@ const portfolioConfig = {
   applyConfiguration();
   buildChapterNavigation();
   bindEvents();
-  navigateTo(state.currentPage, { fromHash: true });
+  navigateTo(getPageFromHash() || config.initialPage, { fromHash: true });
 })();

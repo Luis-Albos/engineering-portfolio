@@ -31,9 +31,7 @@
 
       <nav class="primary-nav" aria-label="Primary navigation">
         <a class="is-active" href="#portfolio-viewer">Work</a>
-        <a href="#about">About</a>
         <a class="resume-link" href="resume.html">Resume</a>
-        <a href="#contact">Contact</a>
         <a href="resources/">Resources</a>
       </nav>
 
@@ -77,14 +75,9 @@
             <div class="loading-indicator" role="status">Loading page</div>
             <img class="portfolio-page-image" id="portfolio-page" alt="" draggable="false">
             <img class="portfolio-page-image" id="portfolio-page-next" alt="" draggable="false">
-            <div class="page-fallback" id="page-fallback" hidden>
-              <div class="fallback-index" aria-hidden="true">I</div>
-              <div class="fallback-copy">
-                <p class="eyebrow">Portfolio page <span class="fallback-page-number">01</span></p>
-                <h1>Artwork ready<br>when you are.</h1>
-                <p>Add <code>page-01.webp</code> to <code>assets/portfolio/</code>. The viewer will load it automatically.</p>
-              </div>
-              <span class="fallback-corner">Luis Albos / Engineering Portfolio</span>
+            <div class="page-fallback" id="page-fallback" role="status" hidden>
+              <span>Page <span class="fallback-page-number">01</span> could not load.</span>
+              <button id="retry-page" type="button">Retry</button>
             </div>
           </div>
 
@@ -136,9 +129,7 @@
       <div class="progress-track" aria-hidden="true"><span class="progress-bar"></span></div>
       <nav class="mobile-primary-nav" aria-label="Mobile primary navigation">
         <a href="#portfolio-viewer">Work</a>
-        <a href="#about">About</a>
         <a class="resume-link" href="resume.html">Resume</a>
-        <a href="#contact">Contact</a>
         <a href="resources/">Resources</a>
       </nav>
       <p class="drawer-label">Chapters</p>
