@@ -3,7 +3,7 @@
  * Edit this object to change pages, chapters, file locations, and links.
  * All page numbers here are the same one-based numbers visitors see.
  */
-const pageAssetPath = (folder, page) => `${folder}/page-${String(page).padStart(2, "0")}.webp`;
+const pageAssetPath = (folder, page) => `${folder}/page-${String(page).padStart(2, "0")}.webp?v=${encodeURIComponent(SITE_CONFIG.build)}`;
 
 const portfolioConfig = {
   totalPages: 31,

@@ -1,7 +1,33 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-build="20260922-01">
   <head>
     <meta charset="utf-8">
+    <script>
+      (() => {
+        const currentBuild = document.documentElement.dataset.build;
+        const pageUrl = new URL(location.href);
+        const versionUrl = new URL("version.json", document.baseURI);
+        versionUrl.searchParams.set("t", Date.now());
+        fetch(versionUrl, { cache: "no-store" })
+          .then(response => response.ok ? response.json() : null)
+          .then(version => {
+            const latestBuild = version?.build;
+            if (typeof latestBuild !== "string" || !latestBuild) return;
+            const requestedBuild = pageUrl.searchParams.get("build");
+            if (latestBuild !== currentBuild) {
+              if (requestedBuild === latestBuild) return;
+              pageUrl.searchParams.set("build", latestBuild);
+              location.replace(pageUrl.href);
+              return;
+            }
+            if (requestedBuild === currentBuild) {
+              pageUrl.searchParams.delete("build");
+              history.replaceState(history.state, "", `${pageUrl.pathname}${pageUrl.search}${pageUrl.hash}`);
+            }
+          })
+          .catch(() => {});
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#111315">
     <meta name="description" content="Luis Albos Engineering Portfolio — aerospace, mechatronics, robotics, technical leadership, and digital tools.">
@@ -12,10 +38,10 @@
     <meta name="twitter:title" content="Luis Albos — Engineering Portfolio">
     <meta name="twitter:description" content="A 31-page aerospace and mechatronics engineering portfolio by Luis Albos.">
     <title>Luis Albos — Engineering Portfolio</title>
-    <link rel="icon" href="assets/landing/alephon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="css/landing.css">
-    <link rel="stylesheet" href="css/boot.css">
+    <link rel="icon" href="assets/landing/alephon.svg?v=20260922-01" type="image/svg+xml">
+    <link rel="stylesheet" href="styles.css?v=20260922-01">
+    <link rel="stylesheet" href="css/landing.css?v=20260922-01">
+    <link rel="stylesheet" href="css/boot.css?v=20260922-01">
     <script>
       (() => {
         const deep = /^#(?:page=|portfolio-viewer$|work$|about$|contact$)/i.test(location.hash);
@@ -25,10 +51,10 @@
         if (!deep && !seen) document.documentElement.dataset.boot = 'playing';
       })();
     </script>
-    <script type="module" src="js/experience.js"></script>
-    <script src="site-config.js" defer></script>
-    <script src="page-transitions.js" defer></script>
-    <script src="script.js" defer></script>
+    <script type="module" src="js/experience.js?v=20260922-01"></script>
+    <script src="site-config.js?v=20260922-01" defer></script>
+    <script src="page-transitions.js?v=20260922-01" defer></script>
+    <script src="script.js?v=20260922-01" defer></script>
   </head>
   <body class="page-enter">
     <a class="skip-link" href="#portfolio-viewer">Skip to portfolio viewer</a>
@@ -37,7 +63,7 @@
     <section class="boot-cinematic" data-state="BLACK" aria-label="Alephon introduction">
       <div class="boot-visual" aria-hidden="true">
         <div class="boot-init"><div class="dot-logo"></div><div class="boot-console"><span>ALEPHON / SYSTEM INITIALIZE</span><span>DISPLAY_LAYER .... READY</span><span>ARCHIVE_INDEX .... MOUNT</span><span>VIEWER_CACHE ..... READY</span><span>GEOMETRY_BUS ..... ONLINE</span><span>SESSION_CORE ..... RESOLVE</span></div><pre class="boot-code"><span>initialize archive {</span><span>  display.mount();</span><span>  index.resolve(31);</span><span>  geometry.prepare();</span><span>  session.open();</span><span>}</span></pre></div>
-        <div class="boot-brand"><img src="assets/landing/alephon.svg" alt=""><p>ALEPHON</p><div class="boot-loading"><i></i></div></div>
+        <div class="boot-brand"><img src="assets/landing/alephon.svg?v=20260922-01" alt=""><p>ALEPHON</p><div class="boot-loading"><i></i></div></div>
         <div class="boot-verification"><span class="verify-corner">ALEPHON / SESSION 01</span><span class="verify-meta">PORTFOLIO ENVIRONMENT</span><div class="verify-center"><p>REQUESTING VERIFICATION</p><div class="token-field"><div class="token-blocks"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span class="pixel-loader"><i></i><i></i><i></i><i></i></span></div><small>LOCAL PRESENTATION SEQUENCE</small></div></div>
         <div class="boot-success"><svg viewBox="0 0 160 128"><path d="M12 64H36V88H60V64H84V40H108V16H148V48H124V72H100V96H76V120H44V104H28V88H12Z" fill="currentColor"/></svg><p>ACCESS VERIFIED</p></div>
       </div>
@@ -84,7 +110,7 @@
           <p class="project-summary">A personal CAD study recreating the X-02S Strike Wyvern from reference imagery, built as an exercise in complex surfacing, outer-mold-line modeling, and aircraft geometry.</p>
           <p class="project-index">Chapter VIII · Pages 27–28</p>
         </div>
-        <div class="wyvern-viewport" aria-hidden="true"><img class="wyvern-fallback" loading="lazy" src="assets/landing/wyvern-fallback.webp" alt="" decoding="async"><div class="wyvern-canvas"></div></div>
+        <div class="wyvern-viewport" aria-hidden="true"><img class="wyvern-fallback" loading="lazy" src="assets/landing/wyvern-fallback.webp?v=20260922-01" alt="" decoding="async"><div class="wyvern-canvas"></div></div>
         <div class="scene-registration" aria-hidden="true">
           <p class="scene-note note-top-right"><span>Personal CAD Project</span><span>SolidWorks · X-02S</span></p>
           <p class="scene-note note-bottom-left"><span>Reference study</span><span>Aircraft geometry · Complex surfacing</span></p>

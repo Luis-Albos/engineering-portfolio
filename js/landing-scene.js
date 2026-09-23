@@ -1,7 +1,11 @@
-import * as THREE from '../assets/vendor/three/three.module.min.js';
-import { WYVERN_CONFIG as config } from './experience-config.js';
-import {createContourTerrain} from './contour-terrain.js';
-import {createRegistrationRings} from './registration-rings.js';
+const build=document.documentElement.dataset.build;
+const versioned=path=>{const url=new URL(path,import.meta.url);url.searchParams.set('v',build);return url.href;};
+const [THREE,{WYVERN_CONFIG:config},{createContourTerrain},{createRegistrationRings}]=await Promise.all([
+  import(versioned('../assets/vendor/three/three.module.min.js')),
+  import(versioned('./experience-config.js')),
+  import(versioned('./contour-terrain.js')),
+  import(versioned('./registration-rings.js'))
+]);
 
 // Adjacency-driven silhouette: draw an edge only when its two faces straddle
 // the view direction. Unlike wireframe:true, coplanar tessellation stays hidden.
@@ -59,7 +63,8 @@ function smoothSurface(source,crease) {
 }
 
 export async function createLandingScene(host, {signal, reducedMotion=false}={}) {
-  const response=await fetch(new URL(config.model,import.meta.url),{signal});
+  const modelUrl=new URL(config.model,import.meta.url);modelUrl.searchParams.set('v',build);
+  const response=await fetch(modelUrl,{signal});
   if(!response.ok) throw new Error('Wyvern mesh unavailable');
   const buffer=await response.arrayBuffer();
   signal?.throwIfAborted();

@@ -1,16 +1,42 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-build="20260922-01">
   <head>
     <meta charset="utf-8">
+    <script>
+      (() => {
+        const currentBuild = document.documentElement.dataset.build;
+        const pageUrl = new URL(location.href);
+        const versionUrl = new URL("../version.json", document.baseURI);
+        versionUrl.searchParams.set("t", Date.now());
+        fetch(versionUrl, { cache: "no-store" })
+          .then(response => response.ok ? response.json() : null)
+          .then(version => {
+            const latestBuild = version?.build;
+            if (typeof latestBuild !== "string" || !latestBuild) return;
+            const requestedBuild = pageUrl.searchParams.get("build");
+            if (latestBuild !== currentBuild) {
+              if (requestedBuild === latestBuild) return;
+              pageUrl.searchParams.set("build", latestBuild);
+              location.replace(pageUrl.href);
+              return;
+            }
+            if (requestedBuild === currentBuild) {
+              pageUrl.searchParams.delete("build");
+              history.replaceState(history.state, "", `${pageUrl.pathname}${pageUrl.search}${pageUrl.hash}`);
+            }
+          })
+          .catch(() => {});
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#111315">
     <meta name="robots" content="noindex, nofollow, noarchive">
     <title>Study Document - Luis Albos</title>
-    <link rel="stylesheet" href="../styles.css">
-    <link rel="stylesheet" href="resources.css">
-    <script src="resources-config.js" defer></script>
-    <script src="../page-transitions.js" defer></script>
-    <script src="viewer.js" defer></script>
+    <link rel="stylesheet" href="../styles.css?v=20260922-01">
+    <link rel="stylesheet" href="resources.css?v=20260922-01">
+    <script src="resources-config.js?v=20260922-01" defer></script>
+    <script src="../page-transitions.js?v=20260922-01" defer></script>
+    <script src="viewer.js?v=20260922-01" defer></script>
   </head>
   <body class="archive-page document-page page-enter">
     <header class="archive-header document-header">

@@ -36,13 +36,14 @@
       for (const classItem of manifest.classes || []) {
         const document = (classItem.documents || []).find(item => item.id === documentId);
         if (!document) continue;
-        const pdfUrl = new URL(`../${document.path}`, window.location.href).href;
+        const pdfUrl = new URL(`../${document.path}`, window.location.href);
+        pdfUrl.searchParams.set("v", config.build);
         documentTitle(document.title);
         elements.className.textContent = classItem.displayName;
-        elements.pdf.data = pdfUrl;
+        elements.pdf.data = pdfUrl.href;
         elements.pdf.setAttribute("aria-label", `${document.title} PDF`);
-        elements.open.href = pdfUrl;
-        elements.fallbackOpen.href = pdfUrl;
+        elements.open.href = pdfUrl.href;
+        elements.fallbackOpen.href = pdfUrl.href;
         elements.message.hidden = true;
         elements.pdf.hidden = false;
         return;

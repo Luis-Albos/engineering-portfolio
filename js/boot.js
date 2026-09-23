@@ -1,4 +1,7 @@
-import {INTRO_TIMING} from './experience-config.js';
+const build=document.documentElement.dataset.build;
+const configUrl=new URL('./experience-config.js',import.meta.url);
+configUrl.searchParams.set('v',build);
+const {INTRO_TIMING}=await import(configUrl.href);
 
 // One cancellable clock owns the cinematic. CSS draws each state's internal detail.
 export function playBoot({onComplete,reducedMotion=false}) {

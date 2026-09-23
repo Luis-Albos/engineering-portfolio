@@ -1,5 +1,9 @@
-import * as THREE from '../assets/vendor/three/three.module.min.js';
-import {TERRAIN_CONFIG as config, LANDING_PALETTE} from './experience-config.js';
+const build=document.documentElement.dataset.build;
+const versioned=path=>{const url=new URL(path,import.meta.url);url.searchParams.set('v',build);return url.href;};
+const [THREE,{TERRAIN_CONFIG:config,LANDING_PALETTE}]=await Promise.all([
+  import(versioned('../assets/vendor/three/three.module.min.js')),
+  import(versioned('./experience-config.js'))
+]);
 
 // Shared height function keeps the displaced mesh and per-pixel contour field aligned.
 // Arithmetic hashing avoids trigonometric noise cost; contours remain smooth between vertices.

@@ -1,4 +1,7 @@
-import * as THREE from '../assets/vendor/three/three.module.min.js';
+const build=document.documentElement.dataset.build;
+const threeUrl=new URL('../assets/vendor/three/three.module.min.js',import.meta.url);
+threeUrl.searchParams.set('v',build);
+const THREE=await import(threeUrl.href);
 
 // Screen-space construction geometry: CSS-pixel distance preserves circularity
 // at every viewport aspect ratio and renderer pixel ratio. No silhouette mask.

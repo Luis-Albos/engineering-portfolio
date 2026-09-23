@@ -1,5 +1,9 @@
-import {playBoot} from './boot.js';
-import {LANDING_TRANSITION} from './experience-config.js';
+const build=document.documentElement.dataset.build;
+const versioned=path=>{const url=new URL(path,import.meta.url);url.searchParams.set('v',build);return url.href;};
+const [{playBoot},{LANDING_TRANSITION}]=await Promise.all([
+  import(versioned('./boot.js')),
+  import(versioned('./experience-config.js'))
+]);
 const root=document.documentElement;
 const shell=document.querySelector('.portfolio-layout');
 const viewer=document.querySelector('#portfolio-viewer');
@@ -21,7 +25,7 @@ async function startScene(){
   if(scene||sceneAbort)return;
   const generation=++sceneGeneration;sceneAbort=new AbortController();
   try {
-    const {createLandingScene}=await import('./landing-scene.js');
+    const {createLandingScene}=await import(versioned('./landing-scene.js'));
     if(generation!==sceneGeneration)return;
     const result=await createLandingScene(document.querySelector('.wyvern-canvas'),{signal:sceneAbort.signal,reducedMotion:media.matches});
     if(generation!==sceneGeneration||root.dataset.view!=='landing'){result.dispose();return;}

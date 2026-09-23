@@ -85,7 +85,9 @@
   }
 
   function assetUrl(path) {
-    return new URL(`../${path}`, window.location.href).href;
+    const url = new URL(`../${path}`, window.location.href);
+    url.searchParams.set("v", config.build);
+    return url.href;
   }
 
   function viewerUrl(documentId) {
