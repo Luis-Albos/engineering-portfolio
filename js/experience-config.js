@@ -23,7 +23,7 @@ export const AIRCRAFT_CONFIG = {
   idle: { yaw: 0.045, pitch: 0.022, bank: 0.035, vertical: 0.09, lateral: 0.14, longitudinal: 0.12, period: 12500, fps: 60 },
   interaction: { maxYaw: 0.35, maxTilt: 0.14, sensitivity: 0.0035,
     stiffness: 95, damping: 18, maxVelocity: 1.4, releaseMomentum: 0.07, deadzone: 1.5,
-    idleTimeout: 2500, returnDuration: 1200, dismissReturnDuration: 260 },
+    idleTimeout: 500, returnDuration: 1200, dismissReturnDuration: 260 },
   pixelRatio: 1.5
 };
 
