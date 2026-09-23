@@ -216,11 +216,12 @@ Chrome and the development-only Playwright package:
 
 ```bash
 npm install --no-save --package-lock=false playwright
-node scripts/render-wyvern-fallback.cjs
+node scripts/render-aircraft-fallback.cjs
 ```
 
-This writes `assets/landing/wyvern-fallback.webp`, rendered by the same scene with
-motion disabled. Commit the mesh, metadata, fallback, and copied Alephon SVG.
+This writes `assets/landing/sae-aero-fallback.webp` from the actual desktop Home
+canvas, rendered by the same scene with motion disabled. Commit the mesh, metadata,
+fallback, and copied Alephon SVG.
 Deployment needs no Node/Python CAD processing and the existing Pages workflow is
 unchanged. All runtime URLs are relative or resolved relative to their ES module,
 including under `/engineering-portfolio/`.
