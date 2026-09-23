@@ -25,7 +25,7 @@ export async function createLandingScene(host, {signal, reducedMotion=false}={})
   const propellerRest=propeller.quaternion.clone();
   const spin=new THREE.Quaternion(),shaft=new THREE.Vector3(0,1,0);
   let renderer;
-  // Test context availability first, so a normal no-WebGL fallback is not logged as an error by Three.js.
+  // Test context availability first, so the normal no-WebGL path is not logged as an error by Three.js.
   const canvas=document.createElement('canvas');
   const context=canvas.getContext('webgl2',{alpha:true,antialias:true,powerPreference:'low-power'});
   if(!context) throw new Error('WebGL unavailable');
@@ -157,13 +157,13 @@ export async function createLandingScene(host, {signal, reducedMotion=false}={})
     const geometries=new Set(),materials=new Set();
     scene.traverse(object=>{if(object.geometry)geometries.add(object.geometry);if(object.material)materials.add(object.material);});
     geometries.forEach(geometry=>geometry.dispose());materials.forEach(material=>material.dispose());
-    renderer.dispose();renderer.forceContextLoss();canvas.remove();host.parentElement.classList.remove('has-webgl');
+    renderer.dispose();renderer.forceContextLoss();canvas.remove();host.parentElement.classList.remove('is-scene-ready');
   }
   function lost(event){event.preventDefault();dispose();}
   canvas.addEventListener('webglcontextlost',lost);
   host.append(canvas,hint);
-  // Only retire the static fallback after a successful first render.
-  try {resize();wake();host.parentElement.classList.add('has-webgl');}
+  // Reveal the canvas only after a successful first render.
+  try {resize();wake();host.parentElement.classList.add('is-scene-ready');}
   catch(error){dispose();throw error;}
   return {dispose,dismiss(){dismissAt=performance.now();controls.dismiss(dismissAt);hideHint();if(staticMotion)dismissAt-=500;wake();},setReduced(value){staticMotion=value;controls.setReduced(value);hideHint();wake();},snapshot(type='image/png'){render(performance.now());return canvas.toDataURL(type,.93);}};
 }

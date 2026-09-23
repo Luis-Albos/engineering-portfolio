@@ -3,7 +3,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),path
 try{
  const context=await browser.newContext({viewport:{width:1672,height:941}});await context.addInitScript(()=>sessionStorage.setItem('alephonIntroSeen','1'));
  const p=await context.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));p.on('console',m=>{if(m.type()==='error')errors.push(m.text())});
- await p.goto(base);await p.waitForSelector('.has-webgl canvas');await p.waitForTimeout(600);
+ await p.goto(base);await p.waitForSelector('.is-scene-ready canvas');await p.waitForTimeout(600);
  assert.equal(await p.locator('.stage-reference,.landing-terrain,.engineering-grid').count(),0);
  assert.equal((await p.locator('.brand-name').textContent()).trim(),'Luis Albos');
  assert.equal((await p.locator('.brand-details').textContent()).replace(/\s+/g,' ').trim(),'Engineering Portfolio Aerospace Systems & Mechatronics');
@@ -23,23 +23,23 @@ try{
  assert.ok(config.w.surface.roughness>.9 && config.w.surface.metalness===0,'matte dielectric material');
  assert.equal(await p.locator('.landing-stage').evaluate(e=>getComputedStyle(e).backgroundColor),await p.locator('.viewer-stage').evaluate(e=>getComputedStyle(e).backgroundColor));
 
- const first=await p.locator('.wyvern-canvas').screenshot();
+ const first=await p.locator('.scene-canvas').screenshot();
  await p.screenshot({path:path.join(os.tmpdir(),'contour-landing-desktop.png')});
- await p.waitForTimeout(2400);const second=await p.locator('.wyvern-canvas').screenshot();assert.ok(!first.equals(second),'terrain and aircraft progress during idle');
+ await p.waitForTimeout(2400);const second=await p.locator('.scene-canvas').screenshot();assert.ok(!first.equals(second),'terrain and aircraft progress during idle');
  await p.screenshot({path:path.join(os.tmpdir(),'contour-glide-later.png')});
  await p.locator('.open-portfolio').click();await p.waitForTimeout(420);await p.screenshot({path:path.join(os.tmpdir(),'contour-morph.png')});
- await p.waitForFunction(()=>document.documentElement.dataset.view==='viewer');assert.equal(await p.locator('.wyvern-canvas canvas').count(),0);
- await p.locator('[data-home]').click();await p.waitForSelector('.has-webgl canvas');
+ await p.waitForFunction(()=>document.documentElement.dataset.view==='viewer');assert.equal(await p.locator('.scene-canvas canvas').count(),0);
+ await p.locator('[data-home]').click();await p.waitForSelector('.is-scene-ready canvas');
  await p.emulateMedia({reducedMotion:'reduce'});await p.waitForTimeout(300);
 
- const frozen1=await p.locator('.wyvern-canvas').screenshot();await p.waitForTimeout(600);const frozen2=await p.locator('.wyvern-canvas').screenshot();assert.ok(frozen1.equals(frozen2),'reduced motion freezes the entire scene');
+ const frozen1=await p.locator('.scene-canvas').screenshot();await p.waitForTimeout(600);const frozen2=await p.locator('.scene-canvas').screenshot();assert.ok(frozen1.equals(frozen2),'reduced motion freezes the entire scene');
  for(const [width,height] of [[2560,1440],[390,844],[768,1024]]){await p.setViewportSize({width,height});await p.waitForTimeout(300);assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));if(width<760){
  const heading=await p.locator('.landing-biography h1').boundingBox(),bio=await p.locator('.landing-biography p').boundingBox(),cta=await p.locator('.open-portfolio').boundingBox(),stage=await p.locator('.landing-stage').boundingBox();
  assert.ok(heading.y<bio.y && bio.y+bio.height<cta.y && cta.y<stage.y,'mobile heading, biography, CTA, and aircraft retain their hierarchy');
  }await p.screenshot({path:path.join(os.tmpdir(),`contour-${width}.png`)});}
  assert.deepEqual(errors,[]);await context.close();
  const low=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true});await low.addInitScript(()=>{sessionStorage.setItem('alephonIntroSeen','1');Object.defineProperty(navigator,'hardwareConcurrency',{get:()=>2})});
- const lp=await low.newPage();await lp.goto(base);await lp.waitForSelector('.has-webgl canvas');
+ const lp=await low.newPage();await lp.goto(base);await lp.waitForSelector('.is-scene-ready canvas');
  assert.ok(await lp.locator('canvas').evaluate(c=>c.width<=Math.ceil(c.getBoundingClientRect().width)),'low-power rendering caps DPR at one');
  await lp.locator('.open-portfolio').click();await lp.waitForFunction(()=>document.documentElement.dataset.view==='viewer');await low.close();
  console.log('PASS: contour/glide progression, overlay removal, scene disposal/morph, reduced-motion freeze, responsive layouts, low-power path, no console errors.');

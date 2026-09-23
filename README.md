@@ -165,32 +165,15 @@ inactive while that viewer is inert on the landing.
 `reference/alephon-icon.svg` is the real mark. The early sequence in
 `reference/Dan Neuenhaus danneuenhaus Instagram reel.mp4` supplied motion guidance;
 the radar portion is intentionally excluded. The video is not embedded or fetched.
-The revised landing screenshot supplied the composition. The reference directory
-contained no STL; with user confirmation, the source remains **`cad/Wyvern.STL`**,
-the byte-identical copy of `E:/Wyvern.STL` from the earlier implementation.
+The revised landing screenshot supplied composition guidance only; no screenshot is
+served by the live site. The current landing aircraft is the SAE Aero Regular Class
+assembly in `reference/CP1_2024.glb`. Older Wyvern landing meshes, conversion tools,
+and image fallbacks were removed after the landing migrated to this aircraft.
 
-Build the optimized runtime mesh with Python's standard library:
-
-```bash
-python scripts/build-wyvern.py
-```
-
-`assets/landing/x02s.mesh` is **109,392 bytes**, versus 460,984 bytes for the STL.
-The WVR1 binary contains 4,506 exact shared vertices and 27,654 16-bit indices;
-all 9,218 original triangles remain. Its adjacent JSON records provenance/hash.
-The converter rotates the source's negative-Z dorsal direction into Three.js Y-up
-and normalizes length to 10 units. No invented details or mesh decimation.
-The browser loads the optimized mesh, not the STL. This is a compact custom indexed
-mesh, not GLB, avoiding an extra general-purpose model-loader dependency.
-
-Three.js **0.180.0** is vendored under `assets/vendor/three/` with its MIT license.
-`experience.js` dynamically imports the scene only for landing visits. No CDN or
-server runtime is used. A matte Standard material (roughness 0.96, metalness 0) uses crease-aware averaged corner normals: curvature is smooth,
-while form breaks over 38° retain hard normals. Shared-edge adjacency builds distinct
-28° major and 14° secondary feature layers (without duplicating major edges in the
-secondary layer). A view-dependent silhouette shader keeps edges whose neighboring
-face normals straddle the view direction. Low-angle STL triangles are suppressed.
-No source vertices or triangles are changed.
+Three.js **0.180.0** and GLTFLoader are vendored under `assets/vendor/three/` with
+their MIT license. `experience.js` dynamically imports the scene only for landing
+visits. No CDN or server runtime is used. The GLB geometry receives the established
+matte surface and feature/silhouette edge treatment without changing the source model.
 
 The aircraft glides on a 12.5-second base cycle: approximately 5.2° total yaw,
 2.5° total pitch, 4° total bank, with 0.09-unit vertical, 0.14-unit lateral, and
@@ -202,26 +185,14 @@ slow frame delivery also lowers DPR to 1. Entry fades terrain and edge layers,
 then disposes geometry/materials, observers, renderer, context, and animation frame.
 Pending mesh loads are aborted; returning home uses cached modules/assets.
 WebGL loss, unsupported WebGL, or failed Three.js/model loading preserves the
-static fallback and all accessible HTML controls.
+lightweight viewport status and all accessible HTML controls.
 
-To tune the view, edit `WYVERN_CONFIG` in `js/experience-config.js`. Camera position
+To tune the view, edit `AIRCRAFT_CONFIG` in `js/experience-config.js`. Camera position
 sets the viewing direction; FOV controls perspective; the vertex-based fit preserves
 breathing room on resize. Framing offsets, model rotation/position/scale, edge
-opacities, and idle amplitudes are separate. The new nose-left three-quarter camera
-replaces the old top-biased SVG camera. The supplied mesh has no analytical CAD
-surfaces or semantic component labels; only geometry actually present is rendered.
+opacities, and idle amplitudes are separate. The supplied GLB has no analytical CAD
+surfaces; only geometry actually present is rendered.
 
-After changing the model or camera, regenerate the static fallback using local
-Chrome and the development-only Playwright package:
-
-```bash
-npm install --no-save --package-lock=false playwright
-node scripts/render-aircraft-fallback.cjs
-```
-
-This writes `assets/landing/sae-aero-fallback.webp` from the actual desktop Home
-canvas, rendered by the same scene with motion disabled. Commit the mesh, metadata,
-fallback, and copied Alephon SVG.
 Deployment needs no Node/Python CAD processing and the existing Pages workflow is
 unchanged. All runtime URLs are relative or resolved relative to their ES module,
 including under `/engineering-portfolio/`.
@@ -245,9 +216,8 @@ jet's motion envelope and dims with the existing 950 ms portfolio morph.
 Tune `TERRAIN_CONFIG` in `js/experience-config.js`: `roughness`, `heightScale`,
 `frequency`, `warp`, `forwardSpeed`, `direction`, `contourDensity`, `contourOpacity`,
 `lineWidth`, and fog distances. `segments`/`lowSegments` control vertex cost.
-`WYVERN_CONFIG.surface`, `.edges`, and `.idle` control smoothness, highlights,
+`AIRCRAFT_CONFIG.surface`, `.edges`, and `.idle` control smoothness, highlights,
 feature filtering, edge opacity, drift, yaw/pitch/bank, and cycle length.
-The committed fallback is regenerated by the same renderer and includes the terrain.
 No additional runtime dependency, backend, image texture, or runtime CAD conversion
 was introduced. For initial visual tuning, adjust contour opacity and forward speed
 first; leave the shared-shell and camera settings alone unless reframing is desired.
@@ -283,7 +253,7 @@ identity copy.
 The project label is factual; decorative slogans and category lists have been removed.
 
 The landing and viewer use `--viewer-bg`, with `--muted` contour ink. `LANDING_PALETTE`
-selects those CSS tokens for the terrain shader. `WYVERN_CONFIG.surface` controls base
+selects those CSS tokens for the terrain shader. `AIRCRAFT_CONFIG.surface` controls base
 color, roughness, metalness and normal crease; `.lighting` controls key and hemisphere
 fill intensity. Existing `.idle` amplitudes and period retain the gliding motion.
 `TERRAIN_CONFIG` controls roughness, contour density/opacity, speed and direction.

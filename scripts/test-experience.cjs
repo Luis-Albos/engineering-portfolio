@@ -16,7 +16,7 @@ const assert=require('node:assert/strict'),path=require('node:path'),os=require(
   await p.waitForFunction(()=>!document.documentElement.dataset.boot);
   assert.equal(await p.locator('html').getAttribute('data-view'),'landing');
   assert.equal(await p.evaluate(()=>sessionStorage.getItem('alephonIntroSeen')),'1');
-  await p.waitForSelector('.has-webgl canvas');
+  await p.waitForSelector('.is-scene-ready canvas');
   await p.screenshot({path:path.join(os.tmpdir(),'alephon-landing-desktop.png')});
   await p.keyboard.press('ArrowRight');assert.ok(!p.url().includes('#page='),'viewer keys inactive on landing');
   const before=await p.evaluate(()=>({header:document.querySelector('.site-header').getBoundingClientRect().toJSON(),rail:document.querySelector('.landing-rail').getBoundingClientRect().toJSON()}));
@@ -27,7 +27,7 @@ const assert=require('node:assert/strict'),path=require('node:path'),os=require(
   assert.equal((await p.locator('.portfolio-sidebar').boundingBox()).width,before.rail.width);
   await p.screenshot({path:path.join(os.tmpdir(),'alephon-morph.png')});
   await p.waitForFunction(()=>document.documentElement.dataset.view==='viewer');
-  assert.equal(await p.locator('.wyvern-canvas canvas').count(),0,'renderer disposed after entry');
+  assert.equal(await p.locator('.scene-canvas canvas').count(),0,'renderer disposed after entry');
   assert.equal(await p.evaluate(()=>document.activeElement.id),'portfolio-viewer');
   await p.locator('.next-button').click();assert.ok(p.url().endsWith('#page=2'));
   await p.locator('.portfolio-sidebar .search-button').click();await p.locator('#search-input').fill('23');
@@ -38,7 +38,7 @@ const assert=require('node:assert/strict'),path=require('node:path'),os=require(
   await p.locator('[data-home]').click();await p.waitForFunction(()=>document.documentElement.dataset.view==='landing');
   assert.equal(await p.locator('html').getAttribute('data-boot'),null);
   await p.locator('.primary-nav [data-open-portfolio]').click();await p.waitForTimeout(100);
-  await p.locator('[data-home]').click();await p.waitForSelector('.has-webgl canvas');
+  await p.locator('[data-home]').click();await p.waitForSelector('.is-scene-ready canvas');
   await p.waitForTimeout(600);assert.equal(await p.locator('html').getAttribute('data-view'),'landing');
   await p.locator('.primary-nav [data-open-portfolio]').click();await p.waitForTimeout(50);
   // A direct hash during an in-flight morph must finish, never strand the shell.
@@ -86,9 +86,9 @@ const assert=require('node:assert/strict'),path=require('node:path'),os=require(
    if(failure==='library')await p.route('**/assets/vendor/three/**',r=>r.abort());
    if(failure==='slow')await p.route('**/CP1_2024.glb*',async r=>{await new Promise(resolve=>setTimeout(resolve,2500));try{await r.continue()}catch(_){}});
    await p.goto(base);await p.locator('.open-portfolio').click();await p.waitForFunction(()=>document.documentElement.dataset.view==='viewer');await p.waitForTimeout(400);
-   assert.equal(await p.locator('.wyvern-canvas canvas').count(),0);await p.locator('.next-button').click();assert.equal(await p.locator('#page-input').inputValue(),'2');await c.close();
+   assert.equal(await p.locator('.scene-canvas canvas').count(),0);await p.locator('.next-button').click();assert.equal(await p.locator('#page-input').inputValue(),'2');await c.close();
   }
   const reduced=await browser.newContext({reducedMotion:'reduce'});const rp=await reduced.newPage();await rp.goto(base);await rp.waitForFunction(()=>!document.documentElement.dataset.boot);await rp.locator('.open-portfolio').click();await rp.waitForFunction(()=>document.documentElement.dataset.view==='viewer');await reduced.close();
-  console.log('PASS: full cinematic, every Skip stage, session/refresh, shared-shell morph, Back/Forward, deep links/no Three downloads, responsive layouts, search/thumbnails/fullscreen, reduced motion, WebGL/library/slow-mesh fallback, resource disposal and static project-base paths.');
+  console.log('PASS: full cinematic, every Skip stage, session/refresh, shared-shell morph, Back/Forward, deep links/no Three downloads, responsive layouts, search/thumbnails/fullscreen, reduced motion, WebGL/library/slow-mesh handling, resource disposal and static project-base paths.');
  }finally{await browser.close();server.close()}
 })().catch(e=>{console.error(e);process.exitCode=1});

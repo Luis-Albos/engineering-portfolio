@@ -1,4 +1,4 @@
-// Development-only static server shared by browser checks and fallback rendering.
+// Development-only static server shared by browser checks.
 const http=require('node:http'),fs=require('node:fs'),path=require('node:path');
 const root=path.resolve(__dirname,'..');
 module.exports=()=>new Promise(resolve=>{

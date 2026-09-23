@@ -49,15 +49,20 @@ const assert=require('node:assert/strict');
   assert.equal(await p.evaluate(()=>document.querySelector('.boot-cinematic').getAnimations({subtree:true}).length),0);
   assert.ok(await p.locator('.open-portfolio').isVisible());
   if(['three','glb','gpu'].includes(scenario)){
-   await p.waitForFunction(()=>document.querySelector('.landing-stage').dataset.scene==='fallback');
-   assert.equal(await p.locator('.wyvern-fallback').evaluate(e=>getComputedStyle(e).opacity),'1');
-   await p.waitForSelector('.has-webgl canvas',{timeout:30000});
+   await p.waitForFunction(()=>document.querySelector('.landing-stage').dataset.scene==='delayed');
+   assert.equal(await p.locator('.scene-loading-title').textContent(),'Scene initializing');
+   assert.equal(await p.locator('.scene-loading-detail').textContent(),'Still loading...');
+   assert.equal(await p.locator('.scene-loading').evaluate(e=>getComputedStyle(e).opacity),'1');
+   await p.waitForSelector('.is-scene-ready canvas',{timeout:30000});
    await p.waitForTimeout(250);
-   assert.equal(await p.locator('.wyvern-canvas').evaluate(e=>getComputedStyle(e).opacity),'1');
+   assert.equal(await p.locator('.scene-canvas').evaluate(e=>getComputedStyle(e).opacity),'1');
+   assert.equal(await p.locator('.scene-loading').evaluate(e=>getComputedStyle(e).visibility),'hidden');
   }
   if(scenario==='webgl'){
-   await p.waitForFunction(()=>document.querySelector('.landing-stage').dataset.scene==='fallback');
-   assert.equal(await p.locator('.has-webgl').count(),0);
+   await p.waitForFunction(()=>document.querySelector('.landing-stage').dataset.scene==='unavailable');
+   assert.equal(await p.locator('.scene-loading-title').textContent(),'Scene unavailable');
+   assert.equal(await p.locator('.scene-loading-detail').textContent(),'3D view disabled');
+   assert.equal(await p.locator('.is-scene-ready').count(),0);
   }
   console.log('PASS reliability:',scenario);await ctx.close();
  }

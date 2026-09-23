@@ -20,10 +20,19 @@
 .aircraft-heading .project-meta { margin: 8px 0 0; text-transform: none; letter-spacing: .06em; font-size: 11px; color: var(--muted); }
 .aircraft-heading .project-summary { max-width: 340px; margin: 12px 0 0; font-size: 11px; line-height: 1.65; letter-spacing: 0; text-transform: none; color: #aeb3b8d9; }
 .aircraft-heading .project-index { margin: 14px 0 0; font-size: 8px; letter-spacing: .22em; color: #c4c7c7; }
-.wyvern-viewport { position: absolute; inset: 0; pointer-events: none; }
-.wyvern-canvas, .wyvern-canvas canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
-.wyvern-fallback { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; transition: opacity .2s; }
-.wyvern-viewport.has-webgl .wyvern-fallback { opacity: 0; }
+.scene-viewport { position: absolute; inset: 0; pointer-events: none; background: var(--viewer-bg); }
+.scene-canvas, .scene-canvas canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.scene-canvas { opacity: 0; transition: opacity .2s ease; }
+.scene-viewport.is-scene-ready .scene-canvas { opacity: 1; }
+.scene-loading { position: absolute; z-index: 1; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: #aeb3b8; text-align: center; text-transform: uppercase; transition: opacity .2s ease, visibility 0s linear .2s; }
+.scene-loading-title { font-size: 10px; letter-spacing: .24em; }
+.scene-loading-detail { color: #7f898f; font-size: 8px; letter-spacing: .18em; }
+.scene-loading-line { width: 54px; height: 1px; margin-top: 8px; overflow: hidden; background: #aeb3b829; }
+.scene-loading-line::after { content: ''; display: block; width: 45%; height: 100%; background: #aeb3b899; animation: scene-loading-line 1.4s ease-in-out infinite; }
+.scene-viewport.is-scene-ready .scene-loading { visibility: hidden; opacity: 0; }
+[data-scene=unavailable] .scene-loading-title { color: #929ba0; }
+[data-scene=unavailable] .scene-loading-line { display: none; }
+@keyframes scene-loading-line { from { transform: translateX(-110%); } to { transform: translateX(225%); } }
 /* Shared editorial margins keep all four text anchors on the same frame. */
 .landing-stage { --annotation-x: clamp(24px, 5.5%, 88px); --annotation-y: clamp(28px, 7%, 64px); }
 .aircraft-heading { left: var(--annotation-x); top: var(--annotation-y); }
@@ -98,10 +107,10 @@
 }
 
 /* Interaction belongs to the aircraft canvas; touch scrolling remains available. */
-.wyvern-canvas canvas { pointer-events: auto; touch-action: pan-y; cursor: grab; outline: 1px solid #aeb3b855; outline-offset: -12px; }
-.wyvern-canvas canvas.is-dragging { cursor: grabbing; }
+.scene-canvas canvas { pointer-events: auto; touch-action: pan-y; cursor: grab; outline: 1px solid #aeb3b855; outline-offset: -12px; }
+.scene-canvas canvas.is-dragging { cursor: grabbing; }
 .aircraft-drag-hint { position: absolute; right: var(--annotation-x,5.5%); bottom: 14%; color: #aeb3b899; font-size: 8px; letter-spacing: .16em; text-transform: uppercase; pointer-events: none; }
-[data-view=opening] .wyvern-canvas canvas { pointer-events: none; }
+[data-view=opening] .scene-canvas canvas { pointer-events: none; }
 
 /* Home is a complete editorial spread. Supporting sections belong to the viewer. */
 [data-view=landing] .about-section, [data-view=landing] .site-footer { display: none; }
@@ -147,7 +156,5 @@
 
 @media (prefers-reduced-motion: reduce) {
   .landing-actions a, .landing-actions a::after, .rail-contact a, .rail-contact a::after { transition: none !important; }
+  .scene-loading-line::after { animation: none; width: 100%; opacity: .55; }
 }
-
-.wyvern-canvas { opacity: 0; transition: opacity .2s; }
-.has-webgl .wyvern-canvas { opacity: 1; }

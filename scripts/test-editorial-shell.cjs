@@ -7,7 +7,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),path
   return selectors.map(selector=>{const el=document.querySelector(selector),r=el.getBoundingClientRect(),s=getComputedStyle(el);return {selector,x:r.x,y:r.y,width:r.width,height:r.height,font:s.fontSize,line:s.lineHeight,spacing:s.letterSpacing,gap:s.gap,padding:s.padding,border:s.borderBottomWidth};});
  });
  for(const [width,height] of [[1672,941],[1366,768],[768,1024],[390,844],[320,740]]){
-  await page.setViewportSize({width,height});await page.goto(base);await page.waitForSelector('.has-webgl canvas');
+  await page.setViewportSize({width,height});await page.goto(base);await page.waitForSelector('.is-scene-ready canvas');
   assert.equal(await page.locator('.brand-role').textContent(),'Aerospace Systems & Mechatronics');
   assert.equal(await page.locator('.landing-biography p').count(),1);
   assert.match(await page.locator('.landing-biography').textContent(),/multidisciplinary engineer/);

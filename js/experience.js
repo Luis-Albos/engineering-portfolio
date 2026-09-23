@@ -19,24 +19,35 @@ function setMode(mode){
   rail.inert=!landing;stage.inert=!landing;viewer.inert=landing;sidebar.inert=landing;
 }
 function stopScene(){clearTimeout(sceneTimeout);sceneGeneration++;sceneAbort?.abort();sceneAbort=null;scene?.dispose();scene=null;}
+function setSceneState(state){
+  stage.dataset.scene=state;
+  if(state==='ready')return;
+  const title=stage.querySelector('.scene-loading-title');
+  const detail=stage.querySelector('.scene-loading-detail');
+  if(state==='unavailable') {
+    title.textContent='Scene unavailable';detail.textContent='3D view disabled';
+  } else {
+    title.textContent='Scene initializing';detail.textContent=state==='delayed'?'Still loading...':'Loading assets...';
+  }
+}
 async function startScene(){
   if(root.dataset.boot==='playing'||root.dataset.view!=='landing')return;
   if(scene||sceneAbort)return;
   const generation=++sceneGeneration;sceneAbort=new AbortController();
-  stage.dataset.scene='loading';
-  const timeout=sceneTimeout=setTimeout(()=>{if(generation===sceneGeneration)stage.dataset.scene='fallback';},SCENE_STARTUP_TIMEOUT);
+  setSceneState('loading');
+  const timeout=sceneTimeout=setTimeout(()=>{if(generation===sceneGeneration)setSceneState('delayed');},SCENE_STARTUP_TIMEOUT);
   try {
     // Allow the usable static landing to paint before imports or GPU work.
     await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
     if(generation!==sceneGeneration)return;
     const {createLandingScene}=await import(versioned('./landing-scene.js'));
     if(generation!==sceneGeneration)return;
-    const result=await createLandingScene(document.querySelector('.wyvern-canvas'),{signal:sceneAbort.signal,reducedMotion:media.matches});
+    const result=await createLandingScene(document.querySelector('.scene-canvas'),{signal:sceneAbort.signal,reducedMotion:media.matches});
     if(generation!==sceneGeneration||root.dataset.view!=='landing'){result.dispose();return;}
-    scene=result;stage.dataset.scene='ready';
+    scene=result;setSceneState('ready');
   } catch (_) {
-    if(generation===sceneGeneration)stage.dataset.scene='fallback';
-    // Static CAD fallback and every HTML control remain available.
+    if(generation===sceneGeneration)setSceneState('unavailable');
+    // The lightweight viewport state and every HTML control remain available.
   } finally {clearTimeout(timeout);if(generation===sceneGeneration)sceneAbort=null;}
 }
 function closeMobileMenu(){

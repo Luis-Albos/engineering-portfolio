@@ -44,11 +44,11 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),path
  await page.locator('canvas').dispatchEvent('pointercancel',{pointerId:1});assert.equal(await page.locator('.is-dragging').count(),0);await page.mouse.up();
  await page.locator('.open-portfolio').click();await page.waitForTimeout(300);
  const closing=await read();assert.equal(closing.interaction.yaw,0);assert.equal(closing.interaction.pitch,0);assert.equal(closing.interaction.idleWeight,0,'known pose before dismissal');
- await page.waitForFunction(()=>document.documentElement.dataset.view==='viewer');assert.equal(await page.locator('.wyvern-canvas canvas').count(),0);
- await page.locator('[data-home]').click();await page.waitForSelector('.has-webgl canvas');
+ await page.waitForFunction(()=>document.documentElement.dataset.view==='viewer');assert.equal(await page.locator('.scene-canvas canvas').count(),0);
+ await page.locator('[data-home]').click();await page.waitForSelector('.is-scene-ready canvas');
  assert.equal(await page.locator('.aircraft-drag-hint:not([hidden])').count(),0,'hint is one-time per session');
  await page.emulateMedia({reducedMotion:'reduce'});await page.waitForTimeout(100);
- const canvas=page.locator('.wyvern-canvas canvas');await canvas.focus();await canvas.press('ArrowRight');assert.ok((await read()).interaction.yaw>0);
+ const canvas=page.locator('.scene-canvas canvas');await canvas.focus();await canvas.press('ArrowRight');assert.ok((await read()).interaction.yaw>0);
  await canvas.press('Escape');assert.equal((await read()).interaction.yaw,0,'keyboard return respects reduced motion');
  const climb=await page.evaluate(async()=>{const THREE=await import('./assets/vendor/three/three.module.min.js');const nose=new THREE.Vector3(-1,0,0).applyQuaternion(new THREE.Quaternion(...heroProbe.rotation));return Math.asin(nose.y)*180/Math.PI;});
  assert.ok(Math.abs(climb-3)<1e-6,'default return pose has a 3 degree nose-up attitude');
