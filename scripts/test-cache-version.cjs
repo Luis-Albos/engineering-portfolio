@@ -5,6 +5,10 @@ const vm = require("node:vm");
 
 const root = path.resolve(__dirname, "..");
 const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+const deployedBuild=JSON.parse(fs.readFileSync(path.join(root,'version.json'),'utf8')).build;
+for(const page of ['index.html','resume.html','resources/index.html']) {
+  assert.ok(fs.readFileSync(path.join(root,page),'utf8').includes('data-build="'+deployedBuild+'"'),page+' build matches version.json');
+}
 const checkSource = html.match(/<script>\s*(\(\(\) => \{[\s\S]*?fetch\(versionUrl,[\s\S]*?\}\)\(\);)\s*<\/script>/)?.[1];
 assert.ok(checkSource, "the early build-version check is present");
 

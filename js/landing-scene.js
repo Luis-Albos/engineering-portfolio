@@ -161,6 +161,9 @@ export async function createLandingScene(host, {signal, reducedMotion=false}={})
   }
   function lost(event){event.preventDefault();dispose();}
   canvas.addEventListener('webglcontextlost',lost);
-  host.append(canvas,hint);resize();host.parentElement.classList.add('has-webgl');wake();
+  host.append(canvas,hint);
+  // Only retire the static fallback after a successful first render.
+  try {resize();wake();host.parentElement.classList.add('has-webgl');}
+  catch(error){dispose();throw error;}
   return {dispose,dismiss(){dismissAt=performance.now();controls.dismiss(dismissAt);hideHint();if(staticMotion)dismissAt-=500;wake();},setReduced(value){staticMotion=value;controls.setReduced(value);hideHint();wake();},snapshot(type='image/png'){render(performance.now());return canvas.toDataURL(type,.93);}};
 }

@@ -1,31 +1,51 @@
-const build=document.documentElement.dataset.build;
-const configUrl=new URL('./experience-config.js',import.meta.url);
-configUrl.searchParams.set('v',build);
-const {INTRO_TIMING}=await import(configUrl.href);
-
-// One cancellable clock owns the cinematic. CSS draws each state's internal detail.
-export function playBoot({onComplete,reducedMotion=false}) {
+(() => {
   const root=document.documentElement,boot=document.querySelector('.boot-cinematic');
+  if(root.dataset.boot!=='playing')return;
+  // Durations are visible animation time, not deadlines measured from page load.
+  const stages=[['BLACK',400],['BOOT',700],['INITIALIZE',1100],['RESET',250],
+    ['BRAND',700],['LOADING',1200],['VERIFY',550],['AUTHENTICATING',1750],
+    ['VERIFIED',450],['CHECK',650],['LANDING',750]];
+  const controller=new AbortController(),{signal}=controller;
+  const media=matchMedia('(prefers-reduced-motion: reduce)');
   const skip=boot.querySelector('.boot-skip');
-  let frame=0,finished=false,index=-1;
-  const start=performance.now();
-  function finish() {
-    if(finished)return;finished=true;cancelAnimationFrame(frame);
+  let finished=false;
+  function finish(){
+    if(finished)return;
+    finished=true;controller.abort();
+    boot.dataset.state='COMPLETE';root.removeAttribute('data-boot');boot.inert=true;
     boot.getAnimations({subtree:true}).forEach(animation=>animation.cancel());
-    root.removeAttribute('data-boot');boot.dataset.state='COMPLETE';
-    skip.removeEventListener('click',finish);onComplete();
+    skip.removeEventListener('click',finish);media.removeEventListener('change',reduce);
+    window.removeEventListener('pagehide',finish);
+    try{sessionStorage.setItem('alephonIntroSeen','1');}catch(_){}
+    window.dispatchEvent(new Event('alephon:complete'));
   }
-  function tick(now) {
-    const elapsed=now-start;
-    if(reducedMotion) {boot.dataset.state='BRAND';if(elapsed>=220){finish();return;}}
-    else {
-      while(index+1<INTRO_TIMING.length&&elapsed>=INTRO_TIMING[index+1][0]) {
-        index++;boot.dataset.state=INTRO_TIMING[index][1];
-        if(boot.dataset.state==='COMPLETE'){finish();return;}
+  function reduce(){if(media.matches)finish();}
+  function showState(state,duration){
+    boot.dataset.state=state;
+    return new Promise(resolve=>{
+      let frame=0,last=null,elapsed=0;
+      const animations=boot.getAnimations({subtree:true});
+      animations.forEach(animation=>animation.pause());
+      function done(){cancelAnimationFrame(frame);signal.removeEventListener('abort',done);resolve();}
+      function tick(now){
+        // Discard long/hidden gaps. Never catch up after a stall or tab suspension.
+        const delta=last===null||document.hidden?0:Math.min(32,now-last);
+        last=document.hidden?null:now;elapsed+=delta;
+        animations.forEach(animation=>{animation.currentTime=(animation.currentTime||0)+delta;});
+        if(elapsed>=duration)done();else frame=requestAnimationFrame(tick);
       }
-    }
-    frame=requestAnimationFrame(tick);
+      signal.addEventListener('abort',done,{once:true});
+      frame=requestAnimationFrame(tick);
+    });
   }
-  skip.addEventListener('click',finish);frame=requestAnimationFrame(tick);
-  return {skip:finish};
-}
+  window.alephonBoot={skip:finish};
+  skip.addEventListener('click',finish);media.addEventListener('change',reduce);
+  window.addEventListener('pagehide',finish);
+  (async()=>{
+    for(const [state,duration] of media.matches?[['BRAND',220]]:stages){
+      if(signal.aborted)return;
+      await showState(state,duration);
+    }
+    finish();
+  })();
+})();

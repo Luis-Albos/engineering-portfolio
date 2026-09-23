@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+      - name: Verify embedded boot assets
+        run: node scripts/sync-boot.cjs --check
       - name: Set up Python
         uses: actions/setup-python@v5
         with:

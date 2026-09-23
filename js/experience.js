@@ -1,9 +1,7 @@
 const build=document.documentElement.dataset.build;
 const versioned=path=>{const url=new URL(path,import.meta.url);url.searchParams.set('v',build);return url.href;};
-const [{playBoot},{LANDING_TRANSITION}]=await Promise.all([
-  import(versioned('./boot.js')),
-  import(versioned('./experience-config.js'))
-]);
+const {LANDING_TRANSITION}=await import(versioned('./experience-config.js'));
+const SCENE_STARTUP_TIMEOUT=6000;
 const root=document.documentElement;
 const shell=document.querySelector('.portfolio-layout');
 const viewer=document.querySelector('#portfolio-viewer');
@@ -13,26 +11,33 @@ const stage=document.querySelector('.landing-stage');
 const bootOverlay=document.querySelector('.boot-cinematic');
 const header=document.querySelector('.site-header');
 const media=matchMedia('(prefers-reduced-motion: reduce)');
-let scene=null,sceneAbort=null,sceneGeneration=0,transitionTimer=0,returnTimer=0,boot=null;
+let scene=null,sceneAbort=null,sceneGeneration=0,sceneTimeout=0,transitionTimer=0,returnTimer=0,boot=window.alephonBoot;
 const isDeep=()=>/^#(?:page=|portfolio-viewer$|work$|about$|contact$)/i.test(location.hash);
 function setMode(mode){
   root.dataset.view=mode;
   const landing=mode==='landing';
   rail.inert=!landing;stage.inert=!landing;viewer.inert=landing;sidebar.inert=landing;
 }
-function stopScene(){sceneGeneration++;sceneAbort?.abort();sceneAbort=null;scene?.dispose();scene=null;}
+function stopScene(){clearTimeout(sceneTimeout);sceneGeneration++;sceneAbort?.abort();sceneAbort=null;scene?.dispose();scene=null;}
 async function startScene(){
+  if(root.dataset.boot==='playing'||root.dataset.view!=='landing')return;
   if(scene||sceneAbort)return;
   const generation=++sceneGeneration;sceneAbort=new AbortController();
+  stage.dataset.scene='loading';
+  const timeout=sceneTimeout=setTimeout(()=>{if(generation===sceneGeneration)stage.dataset.scene='fallback';},SCENE_STARTUP_TIMEOUT);
   try {
+    // Allow the usable static landing to paint before imports or GPU work.
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+    if(generation!==sceneGeneration)return;
     const {createLandingScene}=await import(versioned('./landing-scene.js'));
     if(generation!==sceneGeneration)return;
     const result=await createLandingScene(document.querySelector('.wyvern-canvas'),{signal:sceneAbort.signal,reducedMotion:media.matches});
     if(generation!==sceneGeneration||root.dataset.view!=='landing'){result.dispose();return;}
-    scene=result;
+    scene=result;stage.dataset.scene='ready';
   } catch (_) {
+    if(generation===sceneGeneration)stage.dataset.scene='fallback';
     // Static CAD fallback and every HTML control remain available.
-  } finally {if(generation===sceneGeneration)sceneAbort=null;}
+  } finally {clearTimeout(timeout);if(generation===sceneGeneration)sceneAbort=null;}
 }
 function closeMobileMenu(){
   document.querySelector('.drawer-close')?.click();
@@ -44,6 +49,7 @@ function finishBoot(){
   setMode(root.dataset.view||'landing');
   if(document.activeElement?.classList.contains('boot-skip'))document.querySelector('.open-portfolio').focus({preventScroll:true});
   boot=null;
+  startScene();
 }
 function openPortfolio({historyEntry=true,immediate=false}={}){
   if(root.dataset.view==='opening'&&!immediate)return;
@@ -106,6 +112,6 @@ if(!isDeep()) {
   startScene();
   if(root.dataset.boot==='playing') {
     for(const el of [header,shell,document.querySelector('#about'),document.querySelector('#contact'),document.querySelector('.skip-link')])el.inert=true;
-    boot=playBoot({onComplete:finishBoot,reducedMotion:media.matches});
+    window.addEventListener('alephon:complete',finishBoot,{once:true});
   } else {root.classList.add('home-return');returnTimer=setTimeout(()=>root.classList.remove('home-return'),450);}
 }

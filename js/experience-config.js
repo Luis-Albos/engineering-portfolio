@@ -1,9 +1,3 @@
-export const INTRO_TIMING = Object.freeze([
-  [0, 'BLACK'], [400, 'BOOT'], [1100, 'INITIALIZE'], [2200, 'RESET'],
-  [2450, 'BRAND'], [3150, 'LOADING'], [4350, 'VERIFY'],
-  [4900, 'AUTHENTICATING'], [6650, 'VERIFIED'], [7100, 'CHECK'],
-  [7750, 'LANDING'], [8500, 'COMPLETE']
-]);
 export const LANDING_TRANSITION = { duration: 950, reducedDuration: 100, returnDuration: 450 };
 // CSS tokens also drive the WebGL backdrop, keeping the shell and terrain continuous.
 export const LANDING_PALETTE = { backgroundVariable: '--viewer-bg', contourVariable: '--muted' };

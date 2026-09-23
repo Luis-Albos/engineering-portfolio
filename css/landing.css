@@ -148,3 +148,6 @@
 @media (prefers-reduced-motion: reduce) {
   .landing-actions a, .landing-actions a::after, .rail-contact a, .rail-contact a::after { transition: none !important; }
 }
+
+.wyvern-canvas { opacity: 0; transition: opacity .2s; }
+.has-webgl .wyvern-canvas { opacity: 1; }

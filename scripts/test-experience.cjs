@@ -75,7 +75,8 @@ const assert=require('node:assert/strict'),path=require('node:path'),os=require(
   }
   // Exercise Skip in every timeline state using the browser's clock, not production hooks.
   for(const [at,state] of [[0,'BLACK'],[450,'BOOT'],[1200,'INITIALIZE'],[2250,'RESET'],[2550,'BRAND'],[3300,'LOADING'],[4450,'VERIFY'],[5200,'AUTHENTICATING'],[6800,'VERIFIED'],[7200,'CHECK'],[7800,'LANDING']]) {
-   const c=await browser.newContext();const p=await c.newPage();await p.clock.install();await p.goto(base);await p.clock.fastForward(at+50);
+   const c=await browser.newContext();const p=await c.newPage();await p.clock.install();await p.goto(base);for(let t=0;t<12000;t+=50){if(await p.locator('.boot-cinematic').getAttribute('data-state')===state)break;await p.clock.runFor(50);}
+   assert.equal(await p.locator('.boot-cinematic').getAttribute('data-state'),state);
    await p.locator('.boot-skip').click({force:true});assert.equal(await p.locator('html').getAttribute('data-view'),'landing');assert.equal(await p.locator('html').getAttribute('data-boot'),null);
    await p.clock.fastForward(10000);assert.equal(await p.locator('html').getAttribute('data-view'),'landing');await c.close();
   }
