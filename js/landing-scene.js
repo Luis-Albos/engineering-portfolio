@@ -1,77 +1,28 @@
 const build=document.documentElement.dataset.build;
 const versioned=path=>{const url=new URL(path,import.meta.url);url.searchParams.set('v',build);return url.href;};
-const [THREE,{WYVERN_CONFIG:config},{createContourTerrain},{createRegistrationRings}]=await Promise.all([
+const [THREE,{AIRCRAFT_CONFIG:config},{createContourTerrain},{createAircraftControls},{GLTFLoader}]=await Promise.all([
   import(versioned('../assets/vendor/three/three.module.min.js')),
   import(versioned('./experience-config.js')),
   import(versioned('./contour-terrain.js')),
-  import(versioned('./registration-rings.js'))
+  import(versioned('./aircraft-controls.js')),
+  import(versioned('../assets/vendor/three/GLTFLoader.js'))
 ]);
-
-// Adjacency-driven silhouette: draw an edge only when its two faces straddle
-// the view direction. Unlike wireframe:true, coplanar tessellation stays hidden.
-function edgeLayers(geometry) {
-  const positions=geometry.attributes.position, indices=geometry.index.array, edges=new Map();
-  const a=new THREE.Vector3(),b=new THREE.Vector3(),c=new THREE.Vector3();
-  for(let i=0;i<indices.length;i+=3) {
-    const ids=[indices[i],indices[i+1],indices[i+2]];
-    a.fromBufferAttribute(positions,ids[0]);b.fromBufferAttribute(positions,ids[1]);c.fromBufferAttribute(positions,ids[2]);
-    const normal=b.sub(a).cross(c.sub(a)).normalize().toArray();
-    for(let j=0;j<3;j++) {
-      const first=Math.min(ids[j],ids[(j+1)%3]),second=Math.max(ids[j],ids[(j+1)%3]);
-      const key=`${first}:${second}`;
-      if(edges.has(key)) edges.get(key).normals.push(normal);
-      else edges.set(key,{first,second,normals:[normal]});
-    }
-  }
-  const xyz=[],normalA=[],normalB=[],major=[],secondary=[];
-  for(const {first,second,normals} of edges.values()) {
-    const angle=normals.length<2?180:Math.acos(THREE.MathUtils.clamp(new THREE.Vector3(...normals[0]).dot(new THREE.Vector3(...normals[1])),-1,1))*180/Math.PI;
-    const feature=angle>=config.edges.majorThreshold?major:(angle>=config.edges.secondaryThreshold?secondary:null);
-    for(const id of [first,second]) {
-      if(feature)feature.push(positions.getX(id),positions.getY(id),positions.getZ(id));
-      xyz.push(positions.getX(id),positions.getY(id),positions.getZ(id));
-      normalA.push(...normals[0]);
-      normalB.push(...(normals[1] || normals[0].map(n=>-n)));
-    }
-  }
-  const result=new THREE.BufferGeometry();
-  result.setAttribute('position',new THREE.Float32BufferAttribute(xyz,3));
-  result.setAttribute('normalA',new THREE.Float32BufferAttribute(normalA,3));
-  result.setAttribute('normalB',new THREE.Float32BufferAttribute(normalB,3));
-  const lines=values=>new THREE.BufferGeometry().setAttribute('position',new THREE.Float32BufferAttribute(values,3));
-  return {silhouette:result,major:lines(major),secondary:lines(secondary)};
-}
-
-// Average corner normals only across shallow angles; major CAD creases stay sharp.
-function smoothSurface(source,crease) {
-  const positions=source.attributes.position,indices=source.index.array;
-  const normals=[],adjacent=Array.from({length:positions.count},()=>[]);
-  const a=new THREE.Vector3(),b=new THREE.Vector3(),c=new THREE.Vector3();
-  for(let i=0;i<indices.length;i+=3) {
-    a.fromBufferAttribute(positions,indices[i]);b.fromBufferAttribute(positions,indices[i+1]);c.fromBufferAttribute(positions,indices[i+2]);
-    normals.push(b.sub(a).cross(c.sub(a)).normalize().clone());
-    for(let k=0;k<3;k++)adjacent[indices[i+k]].push(i/3);
-  }
-  const result=source.toNonIndexed(),output=new Float32Array(indices.length*3),sum=new THREE.Vector3();
-  const limit=Math.cos(THREE.MathUtils.degToRad(crease));
-  for(let i=0;i<indices.length;i++) {
-    sum.set(0,0,0);const normal=normals[Math.floor(i/3)];
-    for(const face of adjacent[indices[i]])if(normal.dot(normals[face])>=limit)sum.add(normals[face]);
-    sum.normalize().toArray(output,i*3);
-  }
-  result.setAttribute('normal',new THREE.BufferAttribute(output,3));return result;
-}
 
 export async function createLandingScene(host, {signal, reducedMotion=false}={}) {
   const modelUrl=new URL(config.model,import.meta.url);modelUrl.searchParams.set('v',build);
   const response=await fetch(modelUrl,{signal});
-  if(!response.ok) throw new Error('Wyvern mesh unavailable');
+  if(!response.ok) throw new Error('Aircraft GLB unavailable');
   const buffer=await response.arrayBuffer();
   signal?.throwIfAborted();
-  const view=new DataView(buffer);
-  if(view.getUint32(0,true)!==0x31525657) throw new Error('Invalid Wyvern mesh');
-  const vertexCount=view.getUint32(4,true),indexCount=view.getUint32(8,true);
-  if(buffer.byteLength!==12+vertexCount*12+indexCount*2) throw new Error('Incomplete Wyvern mesh');
+  const gltf=await new GLTFLoader().parseAsync(buffer,new URL('.',modelUrl).href);
+  signal?.throwIfAborted();
+  const aircraft=gltf.scene.getObjectByName('CP1_2024');
+  // GLTFLoader sanitizes spaces; original names remain in userData.name.
+  let propeller;
+  aircraft?.traverse(node=>{if(node.userData.name===config.propeller.node || node.name===config.propeller.node)propeller=node;});
+  if(!aircraft || !propeller)throw new Error('Aircraft assembly or verified propeller node missing');
+  const propellerRest=propeller.quaternion.clone();
+  const spin=new THREE.Quaternion(),shaft=new THREE.Vector3(0,1,0);
   let renderer;
   // Test context availability first, so a normal no-WebGL fallback is not logged as an error by Three.js.
   const canvas=document.createElement('canvas');
@@ -83,75 +34,95 @@ export async function createLandingScene(host, {signal, reducedMotion=false}={})
   renderer.setClearColor(0x000000,0);
   const scene=new THREE.Scene(), group=new THREE.Group();scene.add(group);
   const terrain=createContourTerrain({lowDetail});scene.add(terrain.mesh);
-  const rings=createRegistrationRings();scene.add(rings.mesh);
   scene.add(new THREE.HemisphereLight(0xffffff,0x30363c,config.lighting.fillIntensity));
-  const keyLight=new THREE.DirectionalLight(0xffffff,config.lighting.keyIntensity);keyLight.position.set(2,8,-5);scene.add(keyLight);
+  const keyLight=new THREE.DirectionalLight(0xffffff,config.lighting.keyIntensity);keyLight.position.set(-4,8,6);scene.add(keyLight);
   group.position.set(config.position.x,config.position.y,config.position.z);
   group.rotation.set(config.rotation.x,config.rotation.y,config.rotation.z);
   group.scale.setScalar(config.scale);
-  const geometry=new THREE.BufferGeometry();
-  geometry.setAttribute('position',new THREE.BufferAttribute(new Float32Array(buffer,12,vertexCount*3),3));
-  geometry.setIndex(new THREE.BufferAttribute(new Uint16Array(buffer,12+vertexCount*12,indexCount),1));
-  geometry.computeBoundingBox();
-  const edges=edgeLayers(geometry);
-  const baseMaterial=new THREE.MeshStandardMaterial({color:config.surface.color,roughness:config.surface.roughness,metalness:config.surface.metalness,flatShading:false,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:1,transparent:true});
-  group.add(new THREE.Mesh(smoothSurface(geometry,config.surface.normalCrease),baseMaterial));
-  const majorMaterial=new THREE.LineBasicMaterial({color:0xdcdcdc,transparent:true,opacity:config.edges.major,depthWrite:false});
-  const secondaryMaterial=new THREE.LineBasicMaterial({color:0xb0b0b0,transparent:true,opacity:config.edges.secondary,depthWrite:false});
-  group.add(new THREE.LineSegments(edges.major,majorMaterial));
-  group.add(new THREE.LineSegments(edges.secondary,secondaryMaterial));
-  const silhouetteMaterial=new THREE.ShaderMaterial({
-    uniforms:{intensity:{value:config.edges.silhouette}},transparent:true,depthWrite:false,
-    vertexShader:`attribute vec3 normalA; attribute vec3 normalB; varying vec2 facing;
-      void main(){vec4 p=modelViewMatrix*vec4(position,1.0);vec3 direction=normalize(-p.xyz);
-      facing=vec2(dot(normalMatrix*normalA,direction),dot(normalMatrix*normalB,direction));gl_Position=projectionMatrix*p;}`,
-    fragmentShader:`uniform float intensity;varying vec2 facing;void main(){if(facing.x*facing.y>0.0)discard;gl_FragColor=vec4(.90,.90,.90,intensity);}`
-  });
-  group.add(new THREE.LineSegments(edges.silhouette,silhouetteMaterial));
+  const baseMaterial=new THREE.MeshStandardMaterial({color:config.surface.color,roughness:config.surface.roughness,metalness:0,side:THREE.DoubleSide,transparent:true});
+  aircraft.traverse(node=>{if(node.isMesh){
+    const materials=Array.isArray(node.material)?node.material:[node.material];
+    materials.forEach(material=>{Object.values(material).forEach(value=>{if(value?.isTexture)value.dispose();});material.dispose();});
+    node.material=baseMaterial;
+  }});
+  // Center and uniformly scale the complete assembly; all component mates stay intact.
+  const assemblyBounds=new THREE.Box3().setFromObject(aircraft);
+  const center=assemblyBounds.getCenter(new THREE.Vector3());
+  const normalization=new THREE.Group();normalization.position.copy(center).negate();
+  normalization.add(aircraft);group.add(normalization);
+  group.updateMatrixWorld(true);
+  const fitPoints=[];
+  aircraft.traverse(node=>{if(node.isMesh){
+    node.geometry.computeBoundingBox();
+    const {min,max}=node.geometry.boundingBox;
+    for(const x of [min.x,max.x])for(const y of [min.y,max.y])for(const z of [min.z,max.z])
+      fitPoints.push(new THREE.Vector3(x,y,z).applyMatrix4(node.matrixWorld));
+  }});
   const camera=new THREE.PerspectiveCamera(config.camera.fov,1,.1,200);
   let disposed=false,frame=0,last=0,dismissAt=null,intersecting=true;
   let staticMotion=reducedMotion;
-  let animationSeconds=0,animationStamp=performance.now(),slowFrames=0,qualityReduced=lowDetail;
+  let animationSeconds=0,idleSeconds=0,animationStamp=performance.now(),slowFrames=0,qualityReduced=lowDetail;
+  let interactionActive=false;
+  const cameraRight=new THREE.Vector3(),upAxis=new THREE.Vector3(0,1,0);
+  const orbit=new THREE.Quaternion(),tilt=new THREE.Quaternion();
+  const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
+  const hitBounds=new THREE.Box3(),hitPoint=new THREE.Vector3();
+  // The assembly envelope makes the open truss geometry practical to grab.
+  function hitTest(event) {
+    const rect=canvas.getBoundingClientRect();
+    pointer.set((event.clientX-rect.left)/rect.width*2-1,1-(event.clientY-rect.top)/rect.height*2);
+    raycaster.setFromCamera(pointer,camera);
+    hitBounds.setFromObject(group);
+    return raycaster.ray.intersectBox(hitBounds,hitPoint)!==null;
+  }
+  canvas.tabIndex=0;canvas.setAttribute('role','group');
+  canvas.setAttribute('aria-label','Explore the SAE aircraft. Drag or use arrow keys to rotate. Press Escape to return to the hero view.');
+  const hint=document.createElement('span');hint.className='aircraft-drag-hint';hint.textContent='Drag to explore';hint.setAttribute('aria-hidden','true');
+  function hideHint(){hint.remove();try{sessionStorage.setItem('aircraftExplored','1');}catch(_){}}
+  try{if(sessionStorage.getItem('aircraftExplored'))hint.hidden=true;}catch(_){}
+  const controls=createAircraftControls(canvas,{config:config.interaction,hitTest,onChange:requestRender,onExplore:hideHint,reducedMotion});
   function resize() {
     if(disposed) return;
     const {width,height}=host.getBoundingClientRect();if(!width||!height)return;
-    renderer.setSize(width,height,false);terrain.resize(canvas.width,canvas.height);camera.aspect=width/height;
-    rings.resize(width,height);
+    renderer.setSize(width,height,false);terrain.resize(canvas.width,canvas.height,renderer.getPixelRatio());camera.aspect=width/height;
     const target=new THREE.Vector3(...Object.values(config.camera.target));
     const direction=new THREE.Vector3(...Object.values(config.camera.position)).sub(target).normalize();
     camera.position.copy(direction);camera.lookAt(0,0,0);camera.updateMatrixWorld();
-    // Fit the actual vertices to the perspective frustum with breathing room.
+    // Fit mesh bounds to the perspective frustum with breathing room.
     const vertical=Math.tan(THREE.MathUtils.degToRad(camera.fov/2));
     const horizontal=vertical*camera.aspect;let distance=0;
-    const rotation=new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(config.rotation.x,config.rotation.y,config.rotation.z));
     const right=new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,0),up=new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,1);
-    for(let i=0;i<geometry.attributes.position.count;i++) {
-      const raw=new THREE.Vector3().fromBufferAttribute(geometry.attributes.position,i).multiplyScalar(config.scale).applyMatrix4(rotation);
-      raw.add(new THREE.Vector3(config.position.x,config.position.y,config.position.z)).sub(target);
-      const depth=raw.dot(direction);
+    for(const point of fitPoints) {
+      const raw=point.clone().sub(target),depth=raw.dot(direction);
       distance=Math.max(distance,Math.abs(raw.dot(right))/(horizontal*config.framing.horizontal)+depth,Math.abs(raw.dot(up))/(vertical*config.framing.vertical)+depth);
     }
     camera.position.copy(target).addScaledVector(direction,distance);camera.lookAt(target);
+    camera.updateMatrixWorld();cameraRight.setFromMatrixColumn(camera.matrixWorld,0);
     camera.setViewOffset(width,height,-width*config.framing.centerX,height*config.framing.centerY,width,height);
     camera.updateProjectionMatrix();render(performance.now());
   }
   function render(now) {
-    if(!staticMotion)animationSeconds+=Math.min(.1,Math.max(0,(now-animationStamp)/1000));
-    animationStamp=now;
-    const phase=animationSeconds/(config.idle.period/1000)*Math.PI*2;
-    const p=dismissAt===null?0:Math.min(1,(now-dismissAt)/500);
-    group.rotation.y=config.rotation.y+(staticMotion?0:Math.sin(phase)*config.idle.yaw)+p*.025;
-    // +X is the aircraft's longitudinal axis: roll about X, pitch about Z.
-    group.rotation.x=config.rotation.x+(staticMotion?0:Math.sin(phase*.77)*config.idle.bank);
-    group.rotation.z=config.rotation.z+(staticMotion?0:Math.sin(phase*.91)*config.idle.pitch);
-    group.position.y=config.position.y+(staticMotion?0:Math.sin(phase*.8)*config.idle.vertical);
-    group.position.x=config.position.x+(staticMotion?0:Math.sin(phase*.69)*config.idle.longitudinal)-p*.18;
-    group.position.z=config.position.z+(staticMotion?0:Math.sin(phase*.82)*config.idle.lateral);
+    const dt=Math.min(.1,Math.max(0,(now-animationStamp)/1000));
+    animationStamp=Math.max(animationStamp,now);
+    if(!staticMotion)animationSeconds+=dt;
+    const interaction=controls.update(now);interactionActive=interaction.active;
+    if(interaction.resumed)idleSeconds=0;
+    else if(!staticMotion && !interaction.frozen)idleSeconds+=dt;
+    const phase=idleSeconds/(config.idle.period/1000)*Math.PI*2;
+    const drift=staticMotion?0:interaction.idleWeight;
+    const settle=staticMotion?0:config.interaction.dismissReturnDuration;
+    const p=dismissAt===null?0:THREE.MathUtils.clamp((now-dismissAt-settle)/500,0,1);
+    group.rotation.set(config.rotation.x+Math.sin(phase*.77)*config.idle.bank*drift,
+      config.rotation.y+Math.sin(phase)*config.idle.yaw*drift,
+      config.rotation.z+Math.sin(phase*.91)*config.idle.pitch*drift);
+    orbit.setFromAxisAngle(upAxis,interaction.yaw).multiply(tilt.setFromAxisAngle(cameraRight,interaction.pitch));
+    group.quaternion.premultiply(orbit);
+    // Keep the corrected spin direction independent of the paused glide clock.
+    propeller.quaternion.copy(propellerRest).multiply(spin.setFromAxisAngle(shaft,animationSeconds*config.propeller.radiansPerSecond));
+    group.position.set(config.position.x+Math.sin(phase*.69)*config.idle.longitudinal*drift-p*.18,
+      config.position.y+Math.sin(phase*.8)*config.idle.vertical*drift,
+      config.position.z+Math.sin(phase*.82)*config.idle.lateral*drift);
     terrain.update(animationSeconds,1-Math.min(1,p*1.4));
-    rings.update(1-p);
-    secondaryMaterial.opacity=config.edges.secondary*(1-Math.min(1,p*2.5));
-    majorMaterial.opacity=config.edges.major*(1-Math.min(1,Math.max(0,p-.2)*1.7));
-    silhouetteMaterial.uniforms.intensity.value=config.edges.silhouette*(1-Math.max(0,(p-.5)*2));
     baseMaterial.opacity=1-p;
     renderer.render(scene,camera);
   }
@@ -162,21 +133,29 @@ export async function createLandingScene(host, {signal, reducedMotion=false}={})
       if(!qualityReduced && slowFrames>=12){qualityReduced=true;renderer.setPixelRatio(1);resize();}
       render(now);last=now;
     }
-    if(!staticMotion || (dismissAt!==null&&now-dismissAt<500))frame=requestAnimationFrame(tick);
+    if(needsFrames(now))frame=requestAnimationFrame(tick);
   }
-  function wake() {if(disposed)return;animationStamp=performance.now();last=0;if(frame)cancelAnimationFrame(frame);frame=0;if(!document.hidden&&intersecting){render(performance.now());if(!staticMotion)frame=requestAnimationFrame(tick);}}
+  function requestRender(){
+    if(disposed||document.hidden||!intersecting)return;
+    render(performance.now());if(!frame&&needsFrames(performance.now()))frame=requestAnimationFrame(tick);
+  }
+  function needsFrames(now){return !staticMotion || interactionActive || (dismissAt!==null&&now-dismissAt<config.interaction.dismissReturnDuration+500);}
+  function wake() {if(disposed)return;animationStamp=performance.now();last=0;if(frame)cancelAnimationFrame(frame);frame=0;if(!document.hidden&&intersecting){render(performance.now());if(needsFrames(performance.now()))frame=requestAnimationFrame(tick);}}
   const resizeObserver=new ResizeObserver(resize);resizeObserver.observe(host);
   const intersectionObserver=new IntersectionObserver(entries=>{intersecting=entries[0].isIntersecting;wake();});intersectionObserver.observe(host);
   document.addEventListener('visibilitychange',wake);
   function dispose() {
     if(disposed)return;disposed=true;cancelAnimationFrame(frame);
     resizeObserver.disconnect();intersectionObserver.disconnect();document.removeEventListener('visibilitychange',wake);
+    controls.dispose();hint.remove();
     canvas.removeEventListener('webglcontextlost',lost);
-    scene.traverse(object=>{object.geometry?.dispose();object.material?.dispose();});
-    geometry.dispose();renderer.dispose();renderer.forceContextLoss();canvas.remove();host.parentElement.classList.remove('has-webgl');
+    const geometries=new Set(),materials=new Set();
+    scene.traverse(object=>{if(object.geometry)geometries.add(object.geometry);if(object.material)materials.add(object.material);});
+    geometries.forEach(geometry=>geometry.dispose());materials.forEach(material=>material.dispose());
+    renderer.dispose();renderer.forceContextLoss();canvas.remove();host.parentElement.classList.remove('has-webgl');
   }
   function lost(event){event.preventDefault();dispose();}
   canvas.addEventListener('webglcontextlost',lost);
-  host.append(canvas);resize();host.parentElement.classList.add('has-webgl');wake();
-  return {dispose,dismiss(){dismissAt=performance.now();if(staticMotion)dismissAt-=500;wake();},setReduced(value){staticMotion=value;wake();},snapshot(type='image/png'){render(performance.now());return canvas.toDataURL(type,.93);}};
+  host.append(canvas,hint);resize();host.parentElement.classList.add('has-webgl');wake();
+  return {dispose,dismiss(){dismissAt=performance.now();controls.dismiss(dismissAt);hideHint();if(staticMotion)dismissAt-=500;wake();},setReduced(value){staticMotion=value;controls.setReduced(value);hideHint();wake();},snapshot(type='image/png'){render(performance.now());return canvas.toDataURL(type,.93);}};
 }

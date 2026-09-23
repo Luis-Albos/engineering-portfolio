@@ -24,7 +24,7 @@ const server = http.createServer((req, res) => {
     const page = await browser.newPage({viewport:{width:1440,height:1000}});
     const errors=[]; page.on('pageerror', e=>errors.push(e.message));
     const counts=new Map(); let failing=0;
-    await page.route('**/assets/portfolio/*.webp', async route => {
+    await page.route('**/assets/portfolio/*.webp*', async route => {
       const n=Number(route.request().url().match(/page-(\d+)/)[1]);
       counts.set(n,(counts.get(n)||0)+1);
       await new Promise(r=>setTimeout(r, ({11:1000,12:800,13:200,15:650,16:900})[n] || 70));
@@ -33,7 +33,7 @@ const server = http.createServer((req, res) => {
     const requested=async n=>assert.equal(await page.locator('#page-input').inputValue(),String(n));
     const visible=async n=>page.waitForFunction(n=>{
       const img=[...document.querySelectorAll('.portfolio-page-image.is-loaded')].sort((a,b)=>Number(b.style.zIndex)-Number(a.style.zIndex))[0];
-      return img?.src.endsWith(`page-${String(n).padStart(2,'0')}.webp`) && img.naturalWidth>0;
+      return img && new URL(img.src).pathname.endsWith(`page-${String(n).padStart(2,'0')}.webp`) && img.naturalWidth>0;
     },n);
     const jump=async n=>page.evaluate(n=>{location.hash=`page=${n}`},n);
     const spam=async (selector,count)=>page.evaluate(({selector,count})=>{for(let i=0;i<count;i++)document.querySelector(selector).click()}, {selector,count});
@@ -100,11 +100,11 @@ const server = http.createServer((req, res) => {
         if(mode==='delayed') {const decode=HTMLImageElement.prototype.decode;HTMLImageElement.prototype.decode=async function(){await decode.call(this); await new Promise(r=>setTimeout(r,this.src.includes('page-11')?800:10));};}
       },mode);
       const p=await ctx.newPage();await p.goto(base+'#page=10');
-      await p.waitForFunction(()=>document.querySelector('.is-loaded')?.src?.endsWith('page-10.webp'));
+      await p.waitForFunction(()=>document.querySelector('.is-loaded')?.src?.split('?')[0].endsWith('page-10.webp'));
       await p.locator('.next-button').click();await p.waitForTimeout(60);await p.locator('.next-button').click();
-      await p.waitForFunction(()=>[...document.querySelectorAll('.portfolio-page-image.is-loaded')].some(i=>i.src.endsWith('page-12.webp')));
+      await p.waitForFunction(()=>[...document.querySelectorAll('.portfolio-page-image.is-loaded')].some(i=>new URL(i.src).pathname.endsWith('page-12.webp')));
       await p.waitForTimeout(900);
-      assert.ok(await p.locator('.portfolio-page-image.is-loaded').getAttribute('src').then(s=>s.endsWith('page-12.webp')));
+      assert.ok(await p.locator('.portfolio-page-image.is-loaded').getAttribute('src').then(s=>s.split('?')[0].endsWith('page-12.webp')));
       await ctx.close();
     }
     assert.deepEqual(errors,[]);

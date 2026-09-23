@@ -65,13 +65,13 @@ const assert=require('node:assert/strict'),path=require('node:path'),os=require(
   assert.equal(await p.locator('#about').count(),1);assert.equal(await p.locator('#contact .email-link').count(),1);
   assert.equal(await p.locator('a').filter({hasText:/github|view source|repository|fork/i}).count(),0);
   assert.deepEqual(errors,[]);
-  assert.ok(!requests.some(url=>/\/reference\/|\.STL$/i.test(url)));
+  assert.ok(!requests.some(url=>/\.(?:STEP|SLDASM|STL)(?:\?|$)/i.test(url)));
   await ctx.close();
   // Fresh deep links must avoid all Three.js/model downloads and cinematic state.
   for(const page of [10,23]) {
    const c=await browser.newContext();const p=await c.newPage(),network=[];p.on('request',r=>network.push(r.url()));await p.goto(base+`#page=${page}`);
    assert.equal(await p.locator('#page-input').inputValue(),String(page));assert.equal(await p.locator('html').getAttribute('data-boot'),null);
-   assert.equal(await p.locator('html').getAttribute('data-view'),'viewer');assert.ok(!network.some(u=>/three|landing-scene|x02s.mesh/.test(u)));await c.close();
+   assert.equal(await p.locator('html').getAttribute('data-view'),'viewer');assert.ok(!network.some(u=>/three|landing-scene|CP1_2024.glb/.test(u)));await c.close();
   }
   // Exercise Skip in every timeline state using the browser's clock, not production hooks.
   for(const [at,state] of [[0,'BLACK'],[450,'BOOT'],[1200,'INITIALIZE'],[2250,'RESET'],[2550,'BRAND'],[3300,'LOADING'],[4450,'VERIFY'],[5200,'AUTHENTICATING'],[6800,'VERIFIED'],[7200,'CHECK'],[7800,'LANDING']]) {
@@ -83,7 +83,7 @@ const assert=require('node:assert/strict'),path=require('node:path'),os=require(
    const c=await browser.newContext();await c.addInitScript(()=>sessionStorage.setItem('alephonIntroSeen','1'));const p=await c.newPage();
    if(failure==='webgl')await p.addInitScript(()=>{const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){return /webgl/.test(type)?null:original.call(this,type,...args)}});
    if(failure==='library')await p.route('**/assets/vendor/three/**',r=>r.abort());
-   if(failure==='slow')await p.route('**/x02s.mesh',async r=>{await new Promise(resolve=>setTimeout(resolve,2500));try{await r.continue()}catch(_){}});
+   if(failure==='slow')await p.route('**/CP1_2024.glb*',async r=>{await new Promise(resolve=>setTimeout(resolve,2500));try{await r.continue()}catch(_){}});
    await p.goto(base);await p.locator('.open-portfolio').click();await p.waitForFunction(()=>document.documentElement.dataset.view==='viewer');await p.waitForTimeout(400);
    assert.equal(await p.locator('.wyvern-canvas canvas').count(),0);await p.locator('.next-button').click();assert.equal(await p.locator('#page-input').inputValue(),'2');await c.close();
   }
