@@ -2,6 +2,7 @@
   color-scheme: dark;
   --bg: #111315;
   --bg-deep: #0c0e10;
+  --viewer-bg: #171a1e;
   --panel: #15181b;
   --panel-soft: #1a1e22;
   --line: #34393e;
@@ -19,7 +20,22 @@
 
 * { box-sizing: border-box; }
 
-html { scroll-behavior: smooth; background: var(--bg); }
+html {
+  scroll-behavior: smooth;
+  background: var(--bg);
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+body {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
+}
 
 body {
   margin: 0;
@@ -275,7 +291,7 @@ img { display: block; max-width: 100%; }
   justify-content: center;
   gap: 26px;
   padding: 20px 30px 28px;
-  background: #171a1e;
+  background: var(--viewer-bg);
 }
 
 .image-frame {
@@ -456,12 +472,12 @@ img { display: block; max-width: 100%; }
 .search-result small { color: #81878c; }
 
 /* Resume page */
-.resume-page { background: #171a1e; }
+.resume-page { background: var(--viewer-bg); }
 .resume-page .site-header { position: sticky; top: 0; }
 .resume-main {
   min-height: calc(100svh - var(--header-height));
   padding: clamp(28px, 4vw, 58px) clamp(18px, 4vw, 64px) clamp(42px, 6vw, 80px);
-  background: #171a1e;
+  background: var(--viewer-bg);
 }
 .resume-intro {
   width: min(100%, 1180px);
