@@ -1,11 +1,12 @@
 const build=document.documentElement.dataset.build;
 const versioned=path=>{const url=new URL(path,import.meta.url);url.searchParams.set('v',build);return url.href;};
-const [THREE,{AIRCRAFT_CONFIG:config},{createContourTerrain},{createAircraftControls},{GLTFLoader}]=await Promise.all([
+const [THREE,{AIRCRAFT_CONFIG:config},{createContourTerrain},{createAircraftControls},{GLTFLoader},{createAircraftEdges}]=await Promise.all([
   import(versioned('../assets/vendor/three/three.module.min.js')),
   import(versioned('./experience-config.js')),
   import(versioned('./contour-terrain.js')),
   import(versioned('./aircraft-controls.js')),
-  import(versioned('../assets/vendor/three/GLTFLoader.js'))
+  import(versioned('../assets/vendor/three/GLTFLoader.js')),
+  import(versioned('./aircraft-edges.js'))
 ]);
 
 export async function createLandingScene(host, {signal, reducedMotion=false}={}) {
@@ -39,12 +40,15 @@ export async function createLandingScene(host, {signal, reducedMotion=false}={})
   group.position.set(config.position.x,config.position.y,config.position.z);
   group.rotation.set(config.rotation.x,config.rotation.y,config.rotation.z);
   group.scale.setScalar(config.scale);
-  const baseMaterial=new THREE.MeshStandardMaterial({color:config.surface.color,roughness:config.surface.roughness,metalness:0,side:THREE.DoubleSide,transparent:true});
+  const baseMaterial=new THREE.MeshStandardMaterial({color:new THREE.Color(config.surface.color).multiplyScalar(config.surface.brightness),roughness:config.surface.roughness,metalness:config.surface.metalness,side:THREE.DoubleSide,transparent:true,opacity:config.surface.opacity,polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:1});
+  // Suppress the dielectric specular lobe without changing the scene lighting.
+  baseMaterial.onBeforeCompile=shader=>{shader.fragmentShader=shader.fragmentShader.replace('#include <opaque_fragment>','outgoingLight *= '+config.surface.lightContribution.toFixed(4)+';\n#include <opaque_fragment>');};
   aircraft.traverse(node=>{if(node.isMesh){
     const materials=Array.isArray(node.material)?node.material:[node.material];
     materials.forEach(material=>{Object.values(material).forEach(value=>{if(value?.isTexture)value.dispose();});material.dispose();});
     node.material=baseMaterial;
   }});
+  const edgeMaterial=createAircraftEdges(THREE,aircraft,config.edges);
   // Center and uniformly scale the complete assembly; all component mates stay intact.
   const assemblyBounds=new THREE.Box3().setFromObject(aircraft);
   const center=assemblyBounds.getCenter(new THREE.Vector3());
@@ -123,7 +127,8 @@ export async function createLandingScene(host, {signal, reducedMotion=false}={})
       config.position.y+Math.sin(phase*.8)*config.idle.vertical*drift,
       config.position.z+Math.sin(phase*.82)*config.idle.lateral*drift);
     terrain.update(animationSeconds,1-Math.min(1,p*1.4));
-    baseMaterial.opacity=1-p;
+    baseMaterial.opacity=config.surface.opacity*(1-p);
+    edgeMaterial.uniforms.fade.value=1-p;
     renderer.render(scene,camera);
   }
   function tick(now) {

@@ -15,7 +15,10 @@ export const AIRCRAFT_CONFIG = {
   propeller: { node: 'Propellor 28in-1', radiansPerSecond: 8 },
   camera: { fov: 34, position: { x: -12, y: 7, z: 14 }, target: { x: 0, y: 0, z: 0 } },
   framing: { horizontal: 0.78, vertical: 0.65, centerX: 0.08, centerY: -0.01 },
-  surface: { color: 0x414850, roughness: 0.96, metalness: 0 },
+  // Keep opacity at 1 for clean hidden-line occlusion; brightness controls body presence.
+  surface: { color: 0x191d22, brightness: 3.35, opacity: 1, roughness: 1, metalness: 0, lightContribution: 0.28 },
+  // Threshold is the minimum crease angle in degrees; silhouettes remain visible below it.
+  edges: { color: 0xf0f1ed, brightness: 0.85, silhouetteOpacity: 0.48, internalOpacity: 0.16, threshold: 28 },
   lighting: { keyIntensity: 2.8, fillIntensity: 1.55 },
   idle: { yaw: 0.045, pitch: 0.022, bank: 0.035, vertical: 0.09, lateral: 0.14, longitudinal: 0.12, period: 12500, fps: 60 },
   interaction: { maxYaw: 0.35, maxTilt: 0.14, sensitivity: 0.0035,
