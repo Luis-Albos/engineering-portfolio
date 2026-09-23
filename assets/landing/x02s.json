@@ -1,0 +1,8 @@
+{
+  "source": "cad/Wyvern.STL",
+  "sha256": "fc78bcd15bb72a07061550c310ad4b6fc94744bfadaf9e8f5b3b30c20c06d4a3",
+  "triangles": 9218,
+  "vertices": 4506,
+  "runtimeBytes": 109392,
+  "coordinates": "Y-up; +X nose; normalized length 10; original triangles preserved"
+}

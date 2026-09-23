@@ -1,0 +1,86 @@
+/* One grid and one header for both home and the existing document viewer. */
+:root { --shell-height: calc(100svh - var(--header-height)); }
+.engineering-grid { background-color: #111619; background-image: radial-gradient(#aebbc51a .65px, transparent .8px),linear-gradient(#82929c07 1px, transparent 1px),linear-gradient(90deg,#82929c07 1px,transparent 1px); background-size: 28px 28px,112px 112px,112px 112px; }
+[data-view] .portfolio-layout { grid-template-rows: minmax(var(--shell-height),auto); }
+[data-view] .portfolio-sidebar, .landing-rail { grid-area: 1 / 1; }
+[data-view] .viewer-main, .landing-stage { grid-area: 1 / 2; }
+[data-view] .portfolio-sidebar, .landing-rail { height: var(--shell-height); min-height: 620px; }
+.landing-rail { position: relative; z-index: 11; display: flex; flex-direction: column; justify-content: space-between; padding: 34px 24px 26px 38px; background: #111417; border-right: 1px solid #1b1f23; }
+.landing-identity { transition: opacity .22s, transform .3s; }
+.landing-rail .eyebrow { font-size: 10px; letter-spacing: .17em; }
+.rail-rule { display: block; width: 100%; height: 1px; margin: 24px 0 32px; background: #66737c4a; }
+.rail-rule::before { content: ''; display: block; width: 22px; height: 1px; background: #d2d7d9; }
+.landing-rail h1 { font: 400 30px/1.1 var(--serif); letter-spacing: .025em; margin: 0 0 18px; }
+.landing-discipline { font-size: 10px; line-height: 1.9; letter-spacing: .18em; text-transform: uppercase; color: #adb6be; }
+.landing-fields { font-size: 8px; line-height: 1.9; letter-spacing: .16em; text-transform: uppercase; color: #8b989f; }
+.landing-actions { display: flex; flex-direction: column; gap: 22px; margin-top: 36px; padding-top: 34px; border-top: 1px solid #66737c66; }
+.landing-actions > a { font-size: 10px; text-transform: uppercase; letter-spacing: .15em; align-self: flex-start; }
+.landing-actions > a:hover { color: white; }
+.landing-actions .open-portfolio { width: 100%; min-height: 49px; display: flex; align-items: center; justify-content: center; gap: 14px; border: 1px solid #aab0b2; margin-bottom: 20px; font-weight: 600; transition: background .15s; }
+.open-portfolio:hover { background: #ffffff09; }
+.rail-footnote { margin: 30px 0 0; padding-top: 16px; border-top: 1px solid #66737c44; font-size: 7px; letter-spacing: .16em; text-transform: uppercase; color: #a1acb2; white-space: nowrap; }
+.landing-stage { position: relative; min-width: 0; overflow: hidden; isolation: isolate; min-height: 620px; height: var(--shell-height); }
+.stage-reference { position: absolute; inset: 8% 15% 22% 28%; border: 1px solid #8a9ba023; border-radius: 50%; pointer-events: none; }
+.stage-reference::before, .stage-reference::after { content: ''; position: absolute; background: #8a9ba027; }
+.stage-reference::before { top: 50%; left: -22%; width: 144%; height: 1px; }
+.stage-reference::after { top: -10%; left: 50%; height: 120%; width: 1px; }
+.aircraft-heading { position: absolute; z-index: 2; left: 5.5%; top: 21%; pointer-events: none; }
+.aircraft-heading > span { display: block; width: 23px; border-top: 1px solid #87939766; margin-bottom: 24px; }
+.aircraft-heading h2 { margin: 0; font: 400 clamp(19px,1.8vw,32px)/1.5 var(--serif); letter-spacing: .24em; }
+.aircraft-heading p { font-size: 9px; line-height: 1.8; letter-spacing: .28em; text-transform: uppercase; color: #939fa6; margin-top: 20px; }
+.aircraft-heading small { display: block; font-size: 7px; line-height: 2.2; letter-spacing: .22em; text-transform: uppercase; color: #89969c; margin-top: 36px; }
+.wyvern-viewport { position: absolute; inset: 0; pointer-events: none; }
+.wyvern-canvas, .wyvern-canvas canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.wyvern-fallback { position: absolute; inset: 4% 0 10%; width: 100%; height: 86%; object-fit: contain; transition: opacity .2s; }
+.wyvern-viewport.has-webgl .wyvern-fallback { opacity: 0; }
+.stage-annotation { position: absolute; top: 6%; right: 5%; margin: 0; padding: 10px 0 10px 25px; border-left: 1px solid #87939744; font-size: 7px; line-height: 2.4; letter-spacing: .22em; color: #87949b; }
+.landing-terrain { position: absolute; bottom: 4%; width: 100%; height: 23%; color: #80929b; opacity: .22; pointer-events: none; }
+.stage-motto { position: absolute; bottom: 5%; right: 5%; font-size: 7px; line-height: 2.2; letter-spacing: .21em; text-transform: uppercase; color: #839098; }
+[data-view=landing] .portfolio-sidebar, [data-view=landing] .viewer-main { visibility: hidden; pointer-events: none; }
+[data-view=viewer] .landing-rail, [data-view=viewer] .landing-stage { display: none; }
+[data-view=opening] .landing-rail { pointer-events: none; background: transparent; }
+[data-view=opening] .landing-identity { opacity: 0; transform: translateY(-8px); }
+[data-view=opening] .rail-footnote { opacity: 0; transition: opacity .2s; }
+[data-view=opening] .landing-stage { pointer-events: none; animation: stage-dismiss .55s .3s both; z-index: 2; }
+[data-view=opening] .aircraft-heading, [data-view=opening] .stage-annotation, [data-view=opening] .stage-motto { animation: shell-out .2s both; }
+[data-view=opening] .portfolio-sidebar > * { animation: shell-in .35s .25s both; }
+[data-view=opening] .portfolio-sidebar .chapter-nav { animation-delay: .4s; }
+[data-view=opening] .viewer-main { z-index: 3; pointer-events: none; }
+[data-view=opening] .viewer-stage { background: transparent; }
+[data-view=opening] .image-frame { animation: document-in .35s .4s both; outline: 1px solid #87939755; }
+[data-view=opening] .viewer-controls { animation: shell-in .25s .65s both; }
+[data-view=opening] .open-portfolio { background: #ffffff18; }
+[data-view=landing].home-return .landing-rail, [data-view=landing].home-return .landing-stage { animation: shell-in .45s both; }
+@keyframes shell-in { from { opacity: 0; transform: translateY(6px); } }
+@keyframes shell-out { to { opacity: 0; } }
+@keyframes document-in { from { opacity: 0; transform: scale(.97); } }
+@keyframes stage-dismiss { to { opacity: 0; } }
+[data-boot=playing] body { overflow: hidden; }
+@media (min-width: 1051px) { [data-view] .site-header { position: relative; } }
+@media (max-width: 1050px) and (min-width: 761px) { :root { --sidebar-width: 268px; } .landing-rail { padding-left: 24px; } .landing-rail h1 { font-size: 27px; } .aircraft-heading { top: 10%; } .aircraft-heading small { display: none; } .stage-annotation { display: none; } }
+@media (max-width: 760px) {
+  [data-view=landing] .portfolio-layout { display: grid; min-height: var(--shell-height); grid-template-columns: 1fr; grid-template-rows: auto minmax(310px,1fr); }
+  [data-view=landing] .portfolio-sidebar, [data-view=landing] .viewer-main { display: none; }
+  .landing-rail { grid-area: 1/1; min-height: 0 !important; height: auto !important; padding: 24px 24px 12px; border-right: 0; }
+  .landing-rail .eyebrow { font-size: 8px; }
+  .rail-rule { margin: 14px 0 18px; }
+  .landing-rail h1 { margin-bottom: 8px; font-size: 29px; }
+  .landing-discipline { font-size: 9px; margin: 0; }
+  .landing-fields { font-size: 7px; margin: 8px 0 0; }
+  .landing-actions { margin-top: 17px; padding-top: 18px; gap: 16px; flex-direction: row; flex-wrap: wrap; align-items: center; }
+  .landing-actions .open-portfolio { width: 100%; max-width: 330px; margin: 0; }
+  .landing-actions > a:not(.open-portfolio) { font-size: 8px; padding: 5px 0; }
+  .rail-footnote { display: none; }
+  .landing-stage { grid-area: 2/1; height: auto; min-height: 310px; }
+  .aircraft-heading { top: 5%; left: 6%; }
+  .aircraft-heading > span, .aircraft-heading p, .aircraft-heading small, .stage-annotation, .stage-motto { display: none; }
+  .aircraft-heading h2 { font-size: 13px; line-height: 1.4; letter-spacing: .17em; }
+  .landing-terrain { opacity: .12; }
+  [data-view=opening] .portfolio-layout { display: block; }
+  [data-view=opening] .landing-rail, [data-view=opening] .landing-stage { position: absolute; inset: 0; opacity: 0; pointer-events: none; }
+  [data-view=opening] .landing-stage { display: none; }
+  [data-view=opening] .viewer-stage { background: #171a1e; }
+  [data-view=opening] .image-frame { animation-delay: .1s; }
+  [data-view=opening] .viewer-controls { animation-delay: .25s; }
+}
+@media (prefers-reduced-motion: reduce) { [data-view] * { animation-duration: .01ms !important; animation-delay: 0s !important; transition-duration: .01ms !important; } }

@@ -65,9 +65,9 @@ const server = http.createServer((req, res) => {
     await page.screenshot({path:path.join(os.tmpdir(),'portfolio-desktop.png')});
     assert.deepEqual(errors,[]);
     for(const route of ['', 'resume.html', 'resources/']) {
-      await page.goto(base+route);
-      assert.deepEqual(await page.locator('.primary-nav a').allTextContents(),['Work','Resume','Resources']);
-      assert.deepEqual(await page.locator('.mobile-primary-nav a').allTextContents(),['Work','Resume','Resources']);
+      await page.goto(base+route+(!route?'#page=1':''));
+      assert.deepEqual(await page.locator('.primary-nav a').allTextContents(),['Portfolio','Resume','Resources']);
+      assert.deepEqual(await page.locator('.mobile-primary-nav a').allTextContents(),['Portfolio','Resume','Resources']);
       await page.setViewportSize({width:390,height:844});
       await page.locator('#menu-button').click(); await page.locator('.mobile-primary-nav').waitFor({state:'visible'});
       assert.equal(await page.locator('#mobile-drawer').getAttribute('aria-hidden'),'false');
@@ -81,15 +81,15 @@ const server = http.createServer((req, res) => {
       }
       await page.setViewportSize({width:1440,height:1000});
     }
-    await page.goto(base);
+    await page.goto(base+'#page=1');
     await page.locator('.primary-nav a').filter({hasText:'Resume'}).click();
     await page.waitForURL('**/resume.html');
     const pdf=await page.locator('#resume-pdf').getAttribute('data');
     assert.equal((await page.request.get(new URL(pdf,page.url()).href)).status(),200);
     await page.locator('.primary-nav a').filter({hasText:'Resources'}).click();
     await page.waitForURL('**/resources/');
-    await page.locator('.primary-nav a').filter({hasText:'Work'}).click();
-    await page.waitForURL(base);
+    await page.locator('.primary-nav a').filter({hasText:'Portfolio'}).click();
+    await page.waitForURL('**/index.html#portfolio-viewer');
     // Test unsupported/rejected decoding and idle scheduling fallbacks.
     for(const mode of ['missing','reject','delayed']) {
       const ctx=await browser.newContext({reducedMotion:'reduce'});

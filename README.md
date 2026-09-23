@@ -119,3 +119,121 @@ GitHub will publish the site at `https://YOUR-USERNAME.github.io/REPOSITORY-NAME
 - Deep links using one-based hashes such as `#page=15`
 - Lazy thumbnail loading and adjacent-page preloading
 - Fullscreen and chapter/page search
+
+
+## Landing / Intro System
+
+The homepage uses one real `.portfolio-layout` grid and one header for both the
+landing environment and the existing portfolio viewer. The two content states
+share `--sidebar-width` and `--header-height`. There is no duplicate viewer or
+frontend framework. About and Contact remain below the shell.
+
+- `js/experience.js`: shell state, entry/return, focus, history, and scene lifecycle.
+- `js/boot.js` + `css/boot.css`: the cancellable Alephon cinematic. One animation-frame
+  clock selects explicit states; no nested timer chain. The dot logo is a small
+  CSS dot field masked by the real Alephon SVG; the resolved logo uses the same SVG.
+  Console text, fictional verification blocks, square loader, and green check are
+  HTML/CSS/SVG. This is a presentation, not authentication.
+- `js/landing-scene.js` + `css/landing.css`: Three.js CAD visualization and shared shell.
+- `js/experience-config.js`: all timeline timestamps, transition durations, camera,
+  model transform, feature thresholds, opacity, framing, pixel ratio, and idle settings.
+
+The full timeline is **8,500 ms**, including 400 ms initial black, initialization,
+250 ms reset to black, brand/loading, automatic token population, green expansion,
+and a 650 ms check state followed by the 750 ms landing reveal. Skip cancels the
+clock and animations and reveals the landing; it never enters the portfolio.
+`sessionStorage.alephonIntroSeen` is set on completion or Skip. Returning during the
+same session reveals the landing in 450 ms. Reduced motion shows the solid logo
+for 220 ms and keeps the aircraft static. The superseded `portfolioIntroSeen` key
+is removed when the new intro finishes.
+
+`#page=10`, `#page=23`, and other viewer/section hashes bypass the cinematic and
+landing immediately, before paint. They do not import Three.js or fetch the mesh.
+Portfolio links from Resume and Resources open the viewer; the homepage brand
+returns to the landing without replaying boot. Back/Forward follow the URL state.
+
+Opening Portfolio starts a **950 ms** in-place transformation: the landing rail
+fades upward 8 px; secondary, major, then silhouette edges dim over 500 ms; the
+grid/reference frame dims; the actual portfolio image fades/scales from .97; and
+viewer controls resolve last. The header and grid boundary stay fixed. Reduced
+motion uses a 100 ms state change. The existing viewer handles its own images,
+request tokens, preloads, search, and page navigation. Its keyboard handler is
+inactive while that viewer is inert on the landing.
+
+### Geometry, references, and runtime assets
+
+`reference/alephon-icon.svg` is the real mark. The early sequence in
+`reference/Dan Neuenhaus danneuenhaus Instagram reel.mp4` supplied motion guidance;
+the radar portion is intentionally excluded. The video is not embedded or fetched.
+The revised landing screenshot supplied the composition. The reference directory
+contained no STL; with user confirmation, the source remains **`cad/Wyvern.STL`**,
+the byte-identical copy of `E:/Wyvern.STL` from the earlier implementation.
+
+Build the optimized runtime mesh with Python's standard library:
+
+```bash
+python scripts/build-wyvern.py
+```
+
+`assets/landing/x02s.mesh` is **109,392 bytes**, versus 460,984 bytes for the STL.
+The WVR1 binary contains 4,506 exact shared vertices and 27,654 16-bit indices;
+all 9,218 original triangles remain. Its adjacent JSON records provenance/hash.
+The converter rotates the source's negative-Z dorsal direction into Three.js Y-up
+and normalizes length to 10 units. No invented details or mesh decimation.
+The browser loads the optimized mesh, not the STL. This is a compact custom indexed
+mesh, not GLB, avoiding an extra general-purpose model-loader dependency.
+
+Three.js **0.180.0** is vendored under `assets/vendor/three/` with its MIT license.
+`experience.js` dynamically imports the scene only for landing visits. No CDN or
+server runtime is used. A dark depth mesh supports two `EdgesGeometry` passes
+(28° and 2.5°), with separate subdued intensities. An adjacency-based custom
+silhouette shader keeps edges whose neighboring face normals straddle the view
+direction. Flat triangles are not equally illuminated.
+
+Idle yaw/pitch use tiny sinusoids (about 1.4° total yaw, 0.7° total pitch) over a
+19-second base period, with 0.018-unit vertical drift. Rendering is capped at 24 fps
+and 1.5 device pixel ratio; it pauses offscreen or in a hidden tab. Entry disposes
+geometry/materials, observers, renderer, context, and animation frame. Pending mesh
+loads are aborted; returning home creates a fresh scene using cached modules/assets.
+WebGL loss, unsupported WebGL, or failed Three.js/model loading preserves the
+static fallback and all accessible HTML controls.
+
+To tune the view, edit `WYVERN_CONFIG` in `js/experience-config.js`. Camera position
+sets the viewing direction; FOV controls perspective; the vertex-based fit preserves
+breathing room on resize. Framing offsets, model rotation/position/scale, edge
+opacities, and idle amplitudes are separate. The new nose-left three-quarter camera
+replaces the old top-biased SVG camera. The supplied mesh has no analytical CAD
+surfaces or semantic component labels; only geometry actually present is rendered.
+
+After changing the model or camera, regenerate the static fallback using local
+Chrome and the development-only Playwright package:
+
+```bash
+npm install --no-save --package-lock=false playwright
+node scripts/render-wyvern-fallback.cjs
+```
+
+This writes `assets/landing/wyvern-fallback.webp`, rendered by the same scene with
+motion disabled. Commit the mesh, metadata, fallback, and copied Alephon SVG.
+Deployment needs no Node/Python CAD processing and the existing Pages workflow is
+unchanged. All runtime URLs are relative or resolved relative to their ES module,
+including under `/engineering-portfolio/`.
+
+### Verification
+
+```bash
+node scripts/test-experience.cjs
+node scripts/test-portfolio.cjs
+```
+
+The tests run local Chrome (viewer suite defaults to Edge; set `TEST_BROWSER=chrome`
+to use Chrome), serve the production project base path, and check the full intro,
+every Skip stage, session/refresh, deep links, shell geometry, search, thumbnails,
+fullscreen, mobile/tablet, reduced motion, WebGL/library/model failure, GPU disposal,
+history, and delayed-image arrow/key spam. Screenshots go to the OS temp directory.
+
+The original optional thumbnail directory was empty. Small WebP thumbnails are now
+included to avoid 31 failed image requests when opening the thumbnail panel.
+Regenerate them after replacing portfolio pages with
+`python scripts/build_portfolio_thumbnails.py`; this uses Pillow from the existing
+`requirements-study.txt` development dependencies.

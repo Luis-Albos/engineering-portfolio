@@ -509,7 +509,7 @@ const portfolioConfig = {
     document.addEventListener("keydown", event => {
       const tag = document.activeElement?.tagName;
       const isTyping = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
-      if (!isTyping && !elements.searchDialog.open) {
+      if (!isTyping && !elements.searchDialog.open && !document.querySelector("#portfolio-viewer").inert) {
         if (event.key === "ArrowLeft") { event.preventDefault(); navigateTo(state.currentPage - 1); }
         if (event.key === "ArrowRight") { event.preventDefault(); navigateTo(state.currentPage + 1); }
       }

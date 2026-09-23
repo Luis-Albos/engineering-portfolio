@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 828 792" fill="none">
+  <title>Alephon mark</title>
+  <defs>
+    <mask id="alephon-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="828" height="792">
+      <rect width="828" height="792" fill="black"/>
+      <path fill="white" d="
+        M391 3
+        L391 128
+        L355 164
+        L220 164
+        L220 209
+        L174 210
+        L174 335
+        L136 372
+        L3 372
+        L3 416
+        L138 417
+        L174 453
+        L174 577
+        L219 577
+        L219 453
+        L256 416
+        L389 416
+        L389 372
+        L253 372
+        L219 339
+        L219 210
+        L355 210
+        L391 246
+        L391 370
+        L435 370
+        L437 416
+        L391 418
+        L391 542
+        L355 578
+        L220 579
+        L220 624
+        L355 624
+        L391 661
+        L391 785
+        L436 785
+        L436 660
+        L472 624
+        L606 624
+        L606 579
+        L652 577
+        L652 453
+        L689 416
+        L823 416
+        L823 372
+        L685 371
+        L652 338
+        L652 210
+        L607 210
+        L606 164
+        L469 164
+        L436 131
+        L436 3
+        Z"/>
+
+      <path fill="black" d="M413 154 L446 187 L413 220 L380 187 Z"/>
+      <path fill="black" d="M196 361 L229 394 L196 427 L163 394 Z"/>
+      <path fill="black" d="M629 361 L663 394 L629 427 L597 394 Z"/>
+      <path fill="black" d="M413 568 L446 601 L413 634 L380 601 Z"/>
+
+      <path fill="black" d="M220 209 L355 209 L391 246 L391 372 L255 372 L219 336 Z"/>
+      <path fill="black" d="M473 209 L607 209 L607 335 L571 372 L436 372 L436 246 Z"/>
+      <path fill="black" d="M256 416 L389 416 L389 542 L355 579 L220 579 L220 453 Z"/>
+      <path fill="black" d="M436 417 L570 416 L607 453 L607 579 L470 579 L436 546 Z"/>
+
+      <rect x="389" y="372" width="47" height="44" fill="black"/>
+    </mask>
+  </defs>
+  <rect width="828" height="792" fill="currentColor" mask="url(#alephon-mask)"/>
+</svg>
