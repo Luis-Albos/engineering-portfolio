@@ -11,6 +11,13 @@ const assert=require('node:assert/strict');
  await ip.goto(base,{waitUntil:'commit'});
  await ip.waitForFunction(()=>document.querySelector('.boot-cinematic')?.dataset.state==='BOOT');
  assert.ok(await ip.locator('.dot-logo').isVisible());
+ assert.equal(await ip.locator('.boot-log li').count(),15);
+ assert.match(await ip.locator('.dot-logo').evaluate(e=>getComputedStyle(e).backgroundImage),/radial-gradient/);
+ assert.match(await ip.locator('.dot-logo').evaluate(e=>getComputedStyle(e,'::after').webkitMaskImage||getComputedStyle(e,'::after').maskImage),/data:image\/svg\+xml/);
+ assert.match(await ip.locator('.boot-code').evaluate(e=>getComputedStyle(e).fontFamily),/Cascadia Mono/);
+ await ip.waitForTimeout(500);
+ const revealed=await ip.locator('.boot-log li').evaluateAll(lines=>lines.filter(line=>Number(getComputedStyle(line).opacity)>.9).length);
+ assert.ok(revealed>1&&revealed<15,`boot transcript reveals progressively (${revealed}/15 visible)`);
  assert.ok(await ip.locator('.boot-brand img').evaluate(e=>e.complete&&e.naturalWidth>0));
  await ip.locator('.boot-skip').click();
  assert.equal(await ip.locator('html').getAttribute('data-boot'),null);
@@ -40,6 +47,10 @@ const assert=require('node:assert/strict');
   if(scenario==='stall'){
    await p.evaluate(()=>{const end=performance.now()+800;while(performance.now()<end){}});
    assert.equal(await p.locator('.boot-cinematic').getAttribute('data-state'),'BOOT');
+   await p.waitForFunction(()=>document.querySelector('.boot-cinematic').dataset.state==='INITIALIZE');
+   await p.waitForTimeout(950);
+   assert.equal(await p.locator('.boot-log li').evaluateAll(lines=>lines.filter(line=>Number(getComputedStyle(line).opacity)>.9).length),15);
+   assert.equal(await p.locator('.boot-archive').evaluate(e=>getComputedStyle(e).opacity),'1');
   }
   await p.waitForFunction(()=>document.querySelector('.boot-cinematic')?.dataset.state==='COMPLETE',null,{timeout:30000});
   const states=await p.evaluate(()=>window.bootStates);
