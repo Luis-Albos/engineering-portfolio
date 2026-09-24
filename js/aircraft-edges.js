@@ -1,6 +1,6 @@
 // Weld triangle corners by position so CAD seams do not become a wireframe.
 // Adjacent face normals let the GPU select silhouettes as the assembly rotates.
-export function createAircraftEdges(THREE, aircraft, config) {
+export async function createAircraftEdges(THREE, aircraft, config, yieldWork=()=>Promise.resolve()) {
   const material=new THREE.ShaderMaterial({
     transparent:true,depthTest:true,depthWrite:false,
     uniforms:{
@@ -33,7 +33,9 @@ export function createAircraftEdges(THREE, aircraft, config) {
   });
   const cache=new Map(),meshes=[];
   aircraft.traverse(node=>{if(node.isMesh)meshes.push(node);});
+  try {
   for(const mesh of meshes){
+    await yieldWork();
     let geometry=cache.get(mesh.geometry);
     if(!geometry){
       const position=mesh.geometry.attributes.position,index=mesh.geometry.index;
@@ -41,6 +43,7 @@ export function createAircraftEdges(THREE, aircraft, config) {
       const normal=new THREE.Vector3(),delta=new THREE.Vector3();
       const key=v=>`${Math.round(v.x*1e6)},${Math.round(v.y*1e6)},${Math.round(v.z*1e6)}`;
       for(let i=0;i<(index?index.count:position.count);i+=3){
+        if(i%1536===0)await yieldWork();
         corners.forEach((v,j)=>v.fromBufferAttribute(position,index?index.getX(i+j):i+j));
         normal.subVectors(corners[1],corners[0]).cross(delta.subVectors(corners[2],corners[0]));
         if(normal.lengthSq()<1e-20)continue;
@@ -54,7 +57,9 @@ export function createAircraftEdges(THREE, aircraft, config) {
         }
       }
       const attributes={position:[],faceA:[],faceB:[],midpoint:[],boundary:[]};
+      let edgeCount=0;
       for(const edge of edges.values()){
+        if(++edgeCount%512===0)await yieldWork();
         // Coplanar triangles can never form a visible silhouette or crease.
         if(edge.b && edge.a.dot(edge.b)>0.999999)continue;
         const midpoint=edge.start.clone().add(edge.end).multiplyScalar(.5);
@@ -73,4 +78,5 @@ export function createAircraftEdges(THREE, aircraft, config) {
     mesh.add(lines); // Inherit the propeller and all component transforms exactly.
   }
   return material;
+  } catch(error){cache.forEach(geometry=>geometry.dispose());material.dispose();throw error;}
 }

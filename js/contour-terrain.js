@@ -32,7 +32,12 @@ function heightAt(x,z) {
   return config.heightScale*depthScale*(broad+config.roughness*(.48*ridge+.16*detail));
 }
 
-export function createContourTerrain({lowDetail=false}={}) {
+export function createContourTerrain(options={}) {
+  const work=buildContourTerrain(options);
+  if(!options.yieldWork){let step;do{step=work.next();}while(!step.done);return step.value;}
+  return (async()=>{try{let step;while(!(step=work.next()).done)await options.yieldWork();return step.value;}catch(error){work.return();throw error;}})();
+}
+function* buildContourTerrain({lowDetail=false}={}) {
   const palette=getComputedStyle(document.documentElement);
   const background=new THREE.Color(palette.getPropertyValue(LANDING_PALETTE.backgroundVariable).trim()||'#171a1e');
   const lineColor=new THREE.Color(palette.getPropertyValue(LANDING_PALETTE.contourVariable).trim()||'#aeb3b8');
@@ -40,7 +45,12 @@ export function createContourTerrain({lowDetail=false}={}) {
   const geometry=new THREE.PlaneGeometry(config.size,config.size,segments,segments);
   geometry.rotateX(-Math.PI/2);
   const positions=geometry.attributes.position;
-  for(let i=0;i<positions.count;i++)positions.setY(i,heightAt(positions.getX(i),positions.getZ(i)));
+  let complete=false;
+  try {
+  for(let i=0;i<positions.count;i++){
+    if(i%512===0)yield;
+    positions.setY(i,heightAt(positions.getX(i),positions.getZ(i)));
+  }
   positions.needsUpdate=true;geometry.computeVertexNormals();geometry.computeBoundingSphere();
   const material=new THREE.ShaderMaterial({
     transparent:true,depthWrite:true,side:THREE.DoubleSide,
@@ -99,6 +109,7 @@ export function createContourTerrain({lowDetail=false}={}) {
   }
   const direction=new THREE.Vector2(config.direction.x,config.direction.z).normalize();
   const wrap=value=>THREE.MathUtils.euclideanModulo(value+config.size*.5,config.size)-config.size*.5;
+  complete=true;
   return {mesh,
     resize(width,height,pixelRatio=1){material.uniforms.resolution.value.set(width,height);material.uniforms.lineWidth.value=config.lineWidth*pixelRatio;},
     update(seconds,opacity=1){
@@ -107,4 +118,5 @@ export function createContourTerrain({lowDetail=false}={}) {
       material.uniforms.fade.value=opacity;
     }
   };
+  } finally {if(!complete)geometry.dispose();}
 }

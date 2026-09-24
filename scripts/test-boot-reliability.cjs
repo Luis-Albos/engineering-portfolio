@@ -49,7 +49,7 @@ const assert=require('node:assert/strict');
   if(scenario==='module')await p.route('**/js/experience.js*',async r=>{await new Promise(resolve=>setTimeout(resolve,11000));await r.continue().catch(()=>{});});
   if(['three','glb','gpu'].includes(scenario)){
    const pattern=scenario==='three'?'**/assets/vendor/three/three.module.min.js*':scenario==='glb'?'**/CP1_2024.glb*':'**/js/landing-scene.js*';
-   await p.route(pattern,async r=>{await new Promise(resolve=>setTimeout(resolve,7200));await r.continue().catch(()=>{});});
+   await p.route(pattern,async r=>{await new Promise(resolve=>setTimeout(resolve,14000));await r.continue().catch(()=>{});});
   }
   if(scenario==='gpu')await p.addInitScript(()=>{const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){if(/webgl/.test(type)){const end=performance.now()+800;while(performance.now()<end){}}return original.call(this,type,...args);};});
   if(scenario==='webgl')await p.addInitScript(()=>{const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){return /webgl/.test(type)?null:original.call(this,type,...args);};});
@@ -58,7 +58,7 @@ const assert=require('node:assert/strict');
   if(scenario==='slow3g')await cdp.send('Network.emulateNetworkConditions',{offline:false,latency:400,downloadThroughput:50000,uploadThroughput:20000});
   await p.goto(base,{waitUntil:'commit'});
   await p.waitForFunction(()=>document.querySelector('.boot-cinematic')?.dataset.state==='BOOT');
-  assert.ok(!requests.some(u=>/landing-scene|three.module|CP1_2024/.test(u)),'no scene network during intro');
+  // Scene preparation may run now; intro timing remains independent of it.
   if(scenario==='stall'){
    await p.evaluate(()=>{const end=performance.now()+800;while(performance.now()<end){}});
    assert.equal(await p.locator('.boot-cinematic').getAttribute('data-state'),'BOOT');

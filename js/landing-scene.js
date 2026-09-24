@@ -9,14 +9,29 @@ const [THREE,{AIRCRAFT_CONFIG:config},{createContourTerrain},{createAircraftCont
   import(versioned('./aircraft-edges.js'))
 ]);
 
-export async function createLandingScene(host, {signal, reducedMotion=false}={}) {
-  const modelUrl=new URL(config.model,import.meta.url);modelUrl.searchParams.set('v',build);
-  const response=await fetch(modelUrl,{signal});
-  if(!response.ok) throw new Error('Aircraft GLB unavailable');
-  const buffer=await response.arrayBuffer();
+export async function createLandingScene(host, {signal, reducedMotion=false,buffer,
+  modelUrl=versioned(config.model),yieldWork=()=>Promise.resolve(),beforeHeavy=()=>Promise.resolve(),
+  isActive=()=>true,onUnavailable=()=>{}}={}) {
+  if(!buffer){
+    const response=await fetch(modelUrl,{signal});
+    if(!response.ok)throw new Error('Aircraft GLB unavailable');
+    buffer=await response.arrayBuffer();
+  }
   signal?.throwIfAborted();
   const gltf=await new GLTFLoader().parseAsync(buffer,new URL('.',modelUrl).href);
+  let renderer,scene,terrain;
+  let cleanup=()=>{
+    const geometries=new Set(),materials=new Set(),textures=new Set();
+    for(const tree of [gltf.scene,scene])tree?.traverse(node=>{
+      if(node.geometry)geometries.add(node.geometry);
+      for(const material of (Array.isArray(node.material)?node.material:[node.material]))if(material){materials.add(material);Object.values(material).forEach(v=>{if(v?.isTexture)textures.add(v);});}
+    });
+    geometries.forEach(v=>v.dispose());materials.forEach(v=>v.dispose());textures.forEach(v=>v.dispose());
+    renderer?.dispose();renderer?.forceContextLoss();
+  };
+  try {
   signal?.throwIfAborted();
+  await yieldWork();
   const aircraft=gltf.scene.getObjectByName('CP1_2024');
   // GLTFLoader sanitizes spaces; original names remain in userData.name.
   let propeller;
@@ -24,7 +39,7 @@ export async function createLandingScene(host, {signal, reducedMotion=false}={})
   if(!aircraft || !propeller)throw new Error('Aircraft assembly or verified propeller node missing');
   const propellerRest=propeller.quaternion.clone();
   const spin=new THREE.Quaternion(),shaft=new THREE.Vector3(0,1,0);
-  let renderer;
+  await beforeHeavy();await yieldWork();
   // Test context availability first, so the normal no-WebGL path is not logged as an error by Three.js.
   const canvas=document.createElement('canvas');
   const context=canvas.getContext('webgl2',{alpha:true,antialias:true,powerPreference:'low-power'});
@@ -33,8 +48,10 @@ export async function createLandingScene(host, {signal, reducedMotion=false}={})
   const lowDetail=matchMedia('(pointer: coarse)').matches || (navigator.hardwareConcurrency||8)<=4;
   renderer.setPixelRatio(Math.min(devicePixelRatio,lowDetail?1:config.pixelRatio));
   renderer.setClearColor(0x000000,0);
-  const scene=new THREE.Scene(), group=new THREE.Group();scene.add(group);
-  const terrain=createContourTerrain({lowDetail});scene.add(terrain.mesh);
+  scene=new THREE.Scene();const group=new THREE.Group();scene.add(group);
+  await yieldWork();
+  terrain=await createContourTerrain({lowDetail,yieldWork});scene.add(terrain.mesh);
+  await yieldWork();
   scene.add(new THREE.HemisphereLight(0xffffff,0x30363c,config.lighting.fillIntensity));
   const keyLight=new THREE.DirectionalLight(0xffffff,config.lighting.keyIntensity);keyLight.position.set(-4,8,6);scene.add(keyLight);
   group.position.set(config.position.x,config.position.y,config.position.z);
@@ -48,7 +65,8 @@ export async function createLandingScene(host, {signal, reducedMotion=false}={})
     materials.forEach(material=>{Object.values(material).forEach(value=>{if(value?.isTexture)value.dispose();});material.dispose();});
     node.material=baseMaterial;
   }});
-  const edgeMaterial=createAircraftEdges(THREE,aircraft,config.edges);
+  const edgeMaterial=await createAircraftEdges(THREE,aircraft,config.edges,yieldWork);
+  await yieldWork();
   // Center and uniformly scale the complete assembly; all component mates stay intact.
   const assemblyBounds=new THREE.Box3().setFromObject(aircraft);
   const center=assemblyBounds.getCenter(new THREE.Vector3());
@@ -63,7 +81,8 @@ export async function createLandingScene(host, {signal, reducedMotion=false}={})
       fitPoints.push(new THREE.Vector3(x,y,z).applyMatrix4(node.matrixWorld));
   }});
   const camera=new THREE.PerspectiveCamera(config.camera.fov,1,.1,200);
-  let disposed=false,frame=0,last=0,dismissAt=null,intersecting=true;
+  let prepared=false,disposed=false,frame=0,last=0,dismissAt=null,intersecting=true;
+  let active=isActive();
   let staticMotion=reducedMotion;
   let animationSeconds=0,idleSeconds=0,animationStamp=performance.now(),slowFrames=0,qualityReduced=lowDetail;
   let interactionActive=false;
@@ -103,10 +122,10 @@ export async function createLandingScene(host, {signal, reducedMotion=false}={})
     camera.position.copy(target).addScaledVector(direction,distance);camera.lookAt(target);
     camera.updateMatrixWorld();cameraRight.setFromMatrixColumn(camera.matrixWorld,0);
     camera.setViewOffset(width,height,-width*config.framing.centerX,height*config.framing.centerY,width,height);
-    camera.updateProjectionMatrix();render(performance.now());
+    camera.updateProjectionMatrix();if(prepared)render(performance.now());
   }
   function render(now) {
-    const dt=Math.min(.1,Math.max(0,(now-animationStamp)/1000));
+    const dt=active?Math.min(.1,Math.max(0,(now-animationStamp)/1000)):0;
     animationStamp=Math.max(animationStamp,now);
     if(!staticMotion)animationSeconds+=dt;
     const interaction=controls.update(now);interactionActive=interaction.active;
@@ -132,7 +151,7 @@ export async function createLandingScene(host, {signal, reducedMotion=false}={})
     renderer.render(scene,camera);
   }
   function tick(now) {
-    frame=0;if(disposed||document.hidden||!intersecting)return;
+    frame=0;if(disposed||!prepared||!active||document.hidden||!intersecting)return;
     if(now-last>=1000/config.idle.fps) {
       if(last && now-last>85)slowFrames++;else slowFrames=Math.max(0,slowFrames-1);
       if(!qualityReduced && slowFrames>=12){qualityReduced=true;renderer.setPixelRatio(1);resize();}
@@ -141,16 +160,17 @@ export async function createLandingScene(host, {signal, reducedMotion=false}={})
     if(needsFrames(now))frame=requestAnimationFrame(tick);
   }
   function requestRender(){
-    if(disposed||document.hidden||!intersecting)return;
+    if(disposed||!prepared||!active||document.hidden||!intersecting)return;
     render(performance.now());if(!frame&&needsFrames(performance.now()))frame=requestAnimationFrame(tick);
   }
   function needsFrames(now){return !staticMotion || interactionActive || (dismissAt!==null&&now-dismissAt<config.interaction.dismissReturnDuration+500);}
-  function wake() {if(disposed)return;animationStamp=performance.now();last=0;if(frame)cancelAnimationFrame(frame);frame=0;if(!document.hidden&&intersecting){render(performance.now());if(needsFrames(performance.now()))frame=requestAnimationFrame(tick);}}
+  function wake() {if(disposed||!prepared)return;animationStamp=performance.now();last=0;if(frame)cancelAnimationFrame(frame);frame=0;if(active&&!document.hidden&&intersecting){render(performance.now());if(needsFrames(performance.now()))frame=requestAnimationFrame(tick);}}
   const resizeObserver=new ResizeObserver(resize);resizeObserver.observe(host);
   const intersectionObserver=new IntersectionObserver(entries=>{intersecting=entries[0].isIntersecting;wake();});intersectionObserver.observe(host);
   document.addEventListener('visibilitychange',wake);
   function dispose() {
     if(disposed)return;disposed=true;cancelAnimationFrame(frame);
+    signal?.removeEventListener('abort',dispose);
     resizeObserver.disconnect();intersectionObserver.disconnect();document.removeEventListener('visibilitychange',wake);
     controls.dispose();hint.remove();
     canvas.removeEventListener('webglcontextlost',lost);
@@ -159,11 +179,20 @@ export async function createLandingScene(host, {signal, reducedMotion=false}={})
     geometries.forEach(geometry=>geometry.dispose());materials.forEach(material=>material.dispose());
     renderer.dispose();renderer.forceContextLoss();canvas.remove();host.parentElement.classList.remove('is-scene-ready');
   }
-  function lost(event){event.preventDefault();dispose();}
+  function lost(event){event.preventDefault();dispose();onUnavailable();}
   canvas.addEventListener('webglcontextlost',lost);
+  cleanup=dispose;
+  signal?.addEventListener('abort',dispose,{once:true});
   host.append(canvas,hint);
-  // Reveal the canvas only after a successful first render.
-  try {resize();wake();host.parentElement.classList.add('is-scene-ready');}
+  await yieldWork();
+  // KHR_parallel_shader_compile can finish shader work without blocking the intro.
+  // Canvas opacity stays zero until compilation and the first valid frame succeed.
+  try {
+    resize();await renderer.compileAsync(scene,camera);signal?.throwIfAborted();
+    if(disposed)throw new Error('WebGL context lost during startup');
+    prepared=true;resize();wake();host.parentElement.classList.add('is-scene-ready');
+  }
   catch(error){dispose();throw error;}
-  return {dispose,dismiss(){dismissAt=performance.now();controls.dismiss(dismissAt);hideHint();if(staticMotion)dismissAt-=500;wake();},setReduced(value){staticMotion=value;controls.setReduced(value);hideHint();wake();},snapshot(type='image/png'){render(performance.now());return canvas.toDataURL(type,.93);}};
+  return {dispose,setActive(value){if(active===value)return;active=value;wake();},dismiss(){dismissAt=performance.now();controls.dismiss(dismissAt);hideHint();if(staticMotion)dismissAt-=500;wake();},setReduced(value){staticMotion=value;controls.setReduced(value);hideHint();wake();},snapshot(type='image/png'){render(performance.now());return canvas.toDataURL(type,.93);}};
+  } catch(error){cleanup();throw error;}
 }
