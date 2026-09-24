@@ -158,3 +158,43 @@
   .landing-actions a, .landing-actions a::after, .rail-contact a, .rail-contact a::after { transition: none !important; }
   .scene-loading-line::after { animation: none; width: 100%; opacity: .55; }
 }
+
+.thumbnail-grid[hidden] { display: none; }
+
+/* A single stationary border belongs to the shell, never to either moving scene. */
+@media (min-width: 761px) {
+  .portfolio-layout::after {
+    content: ''; position: absolute; z-index: 4; pointer-events: none;
+    top: 12px; left: calc(var(--sidebar-width) + 12px); right: 12px;
+    height: calc(var(--shell-height) - 24px); border: 1px solid #aeb3b855;
+  }
+  [data-view] .portfolio-sidebar, [data-view] .landing-rail,
+  [data-view] .landing-stage { min-height: 0; }
+  .scene-canvas canvas, [data-view=opening] .image-frame { outline: none; }
+  .viewer-stage {
+    height: var(--shell-height); min-height: 0; gap: 0; padding: 24px;
+  }
+  .image-frame {
+    --page-max-height: calc(var(--shell-height) - 48px);
+    width: min(100%, calc(var(--page-max-height) * var(--page-ratio)));
+    max-height: var(--page-max-height); flex: 0 0 auto;
+  }
+  .portfolio-sidebar { overflow: hidden; }
+  .sidebar-heading, .sidebar-tools, .sidebar-controls { flex-shrink: 0; }
+  .sidebar-controls {
+    width: 100%; display: block; margin-top: 12px; padding-top: 10px;
+    border-top: 1px solid var(--line);
+  }
+  .sidebar-controls .direction-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  .sidebar-controls .direction-controls button {
+    width: 100%; height: 60px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 8px; border: 0;
+  }
+  .sidebar-controls .direction-controls button + button { border-left: 1px solid var(--line); }
+  .sidebar-controls .direction-label { font-size: 8px; letter-spacing: .15em; text-transform: uppercase; }
+  .sidebar-controls button:focus-visible { outline: 1px solid var(--line-bright); outline-offset: -1px; background: #202429; color: #fff; }
+  .sidebar-controls .page-jump-form { display: none; }
+}
+@media (max-width: 760px) {
+  .direction-label { display: none; }
+}

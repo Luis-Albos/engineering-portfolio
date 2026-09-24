@@ -474,6 +474,13 @@ const portfolioConfig = {
   }
 
   function bindEvents() {
+    // Move the same controls at the breakpoint; keep their navigation/cache handlers intact.
+    const mobileViewer=window.matchMedia('(max-width: 760px)');
+    const viewerControls=document.querySelector('.viewer-controls');
+    const placeViewerControls=()=>{
+      document.querySelector(mobileViewer.matches?'.viewer-stage':'.portfolio-sidebar').append(viewerControls);
+    };
+    placeViewerControls();mobileViewer.addEventListener('change',placeViewerControls);
     document.querySelector("#retry-page").addEventListener("click", renderPage);
     elements.previous.addEventListener("click", () => navigateTo(state.currentPage - 1));
     elements.next.addEventListener("click", () => navigateTo(state.currentPage + 1));
