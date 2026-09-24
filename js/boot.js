@@ -2,7 +2,7 @@
   const root=document.documentElement,boot=document.querySelector('.boot-cinematic');
   if(root.dataset.boot!=='playing')return;
   // Durations are visible animation time, not deadlines measured from page load.
-  const stages=[['BLACK',400],['BOOT',700],['INITIALIZE',1100],['RESET',250],
+  const stages=[['BLACK',400],['BOOT',800],['INITIALIZE',1500],['RESET',250],
     ['BRAND',700],['LOADING',1200],['VERIFY',550],['AUTHENTICATING',1750],
     ['VERIFIED',450],['CHECK',650],['LANDING',750]];
   const controller=new AbortController(),{signal}=controller;
