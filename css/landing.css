@@ -112,8 +112,8 @@
 .aircraft-drag-hint { position: absolute; right: var(--annotation-x,5.5%); bottom: 14%; color: #aeb3b899; font-size: 8px; letter-spacing: .16em; text-transform: uppercase; pointer-events: none; }
 [data-view=opening] .scene-canvas canvas { pointer-events: none; }
 
-/* Home is a complete editorial spread. Supporting sections belong to the viewer. */
-[data-view=landing] .about-section, [data-view=landing] .site-footer { display: none; }
+/* Home is a complete editorial spread. The full-width footer belongs to the viewer. */
+[data-view=landing] .site-footer { display: none; }
 :root { --rail-padding-x: 30px; --rail-padding-y: 26px; --rail-gap: 20px; }
 [data-view=landing] .landing-rail, [data-view=landing] .landing-stage { min-height: 0; }
 .landing-rail { padding: var(--rail-padding-y) var(--rail-padding-x); overflow-y: auto; }

@@ -89,7 +89,7 @@ function closeMobileMenu(){
 function finishBoot(){
   bootOverlay.inert=true;
   try{sessionStorage.setItem('alephonIntroSeen','1');sessionStorage.removeItem('portfolioIntroSeen');}catch(_){}
-  for(const el of [header,shell,document.querySelector('#about'),document.querySelector('#contact'),document.querySelector('.skip-link')])el.inert=false;
+  for(const el of [header,shell,document.querySelector('#contact'),document.querySelector('.skip-link')])el.inert=false;
   setMode(root.dataset.view||'landing');
   if(document.activeElement?.classList.contains('boot-skip'))document.querySelector('.open-portfolio').focus({preventScroll:true});
   boot=null;
@@ -143,9 +143,10 @@ document.addEventListener('click',event=>{
   if(link.hasAttribute('data-home'))showLanding();else openPortfolio();
 },true);
 window.addEventListener('hashchange',()=>{
+  if(/^#about$/i.test(location.hash))history.replaceState(history.state,'','#portfolio-viewer');
   if(isDeep()) {
     clearTimeout(transitionTimer);openPortfolio({historyEntry:false,immediate:true});
-    if(/^#(?:about|contact)$/.test(location.hash))document.querySelector(location.hash)?.scrollIntoView({behavior:'instant'});
+    if(location.hash==='#contact')document.querySelector(location.hash)?.scrollIntoView({behavior:'instant'});
   } else showLanding({historyEntry:false});
 });
 media.addEventListener('change',()=>{if(media.matches)boot?.skip();scene?.setReduced(media.matches);});
@@ -156,7 +157,7 @@ setMode(isDeep()?'viewer':'landing');
 if(!isDeep()) {
   startScene();
   if(root.dataset.boot==='playing') {
-    for(const el of [header,shell,document.querySelector('#about'),document.querySelector('#contact'),document.querySelector('.skip-link')])el.inert=true;
+    for(const el of [header,shell,document.querySelector('#contact'),document.querySelector('.skip-link')])el.inert=true;
     window.addEventListener('alephon:complete',finishBoot,{once:true});
   } else {root.classList.add('home-return');returnTimer=setTimeout(()=>root.classList.remove('home-return'),450);}
 }

@@ -62,7 +62,7 @@ const assert=require('node:assert/strict'),path=require('node:path'),os=require(
    await p.screenshot({path:path.join(os.tmpdir(),`alephon-${width}.png`)});
    if(width===390){await p.locator('#menu-button').click();await p.locator('#mobile-drawer .chapter-link[data-page="23"]').click();await p.waitForFunction(()=>document.documentElement.dataset.view==='viewer');assert.equal(await p.locator('#page-input').inputValue(),'23');}
   }
-  assert.equal(await p.locator('#about').count(),1);assert.equal(await p.locator('#contact .email-link').count(),1);
+  assert.equal(await p.locator('#about').count(),0);assert.equal(await p.locator('#contact .email-link').count(),1);
   assert.equal(await p.locator('a').filter({hasText:/github|view source|repository|fork/i}).count(),0);
   assert.deepEqual(errors,[]);
   assert.ok(!requests.some(url=>/\.(?:STEP|SLDASM|STL)(?:\?|$)/i.test(url)));

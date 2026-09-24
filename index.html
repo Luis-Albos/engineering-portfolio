@@ -118,6 +118,8 @@
 @media (prefers-reduced-motion: reduce) { .boot-cinematic *, .boot-cinematic { animation: none !important; }.dot-logo-field, .boot-console > span, .boot-code header, .boot-log li, .boot-archive > p, .boot-archive dl div { opacity: 1; transform: none; } }</style><!-- boot-style:end -->
     <script>
       (() => {
+        // Retired About bookmarks now open the Portfolio viewer.
+        if (/^#about$/i.test(location.hash)) history.replaceState(history.state, '', '#portfolio-viewer');
         const deep = /^#(?:page=|portfolio-viewer$|work$|about$|contact$)/i.test(location.hash);
         document.documentElement.dataset.view = deep ? 'viewer' : 'landing';
         let seen = false;
@@ -342,16 +344,6 @@
         </section>
       </main>
     </div>
-
-    <section class="about-section" id="about" aria-labelledby="about-title">
-      <div>
-        <p class="eyebrow">About / Luis Albos</p>
-        <h2 id="about-title">Aerospace &amp;<br>Mechatronics Engineering.</h2>
-      </div>
-      <div class="about-copy">
-        <p>Multidisciplinary aerospace professional with experience spanning hands-on aircraft engineering, mechatronics, robotics, technical leadership, and digital tools.</p>
-      </div>
-    </section>
 
     <footer class="site-footer" id="contact">
       <p>© 2026 Luis Albos</p>

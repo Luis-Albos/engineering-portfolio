@@ -379,19 +379,6 @@ img { display: block; max-width: 100%; }
 }
 .page-jump-form input::-webkit-inner-spin-button { appearance: none; }
 
-.about-section {
-  display: grid;
-  grid-template-columns: 1.1fr .9fr;
-  gap: 8vw;
-  padding: 110px max(7vw, 42px);
-  background: #e9e7e1;
-  color: #191b1d;
-}
-.about-section .eyebrow { color: #555b5f; }
-.about-section h2 { margin: 26px 0 0; font-family: var(--serif); font-size: clamp(36px, 5vw, 70px); font-weight: 400; line-height: 1.03; letter-spacing: -.035em; }
-.about-copy { max-width: 570px; align-self: end; font-size: clamp(17px, 1.5vw, 22px); line-height: 1.55; }
-.about-copy p { margin: 0 0 28px; }
-
 .site-footer {
   min-height: 88px;
   display: grid;
@@ -591,7 +578,6 @@ img { display: block; max-width: 100%; }
   .direction-controls button { width: 55px; }
   .page-jump-form { grid-column: 2; }
   .page-jump-form input { width: 54px; }
-  .about-section { grid-template-columns: 1fr; gap: 52px; padding: 76px 24px; }
   .site-footer { grid-template-columns: 1fr auto; padding: 26px 20px; }
   .footer-note { display: none; }
   .social-links { gap: 16px; }

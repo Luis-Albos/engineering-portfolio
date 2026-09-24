@@ -76,7 +76,7 @@ const server = http.createServer((req, res) => {
         await visible(1); await spam('.next-button',5); await requested(6); await visible(6);
         await page.evaluate(()=>{const el=document.querySelector('#image-frame');for(const [type,x] of [['touchstart',300],['touchend',100]])el.dispatchEvent(new TouchEvent(type,{changedTouches:[new Touch({identifier:1,target:el,clientX:x,clientY:100})]}));});
         await requested(7); await visible(7);
-        assert.equal(await page.locator('#about').count(),1); assert.equal(await page.locator('#contact .email-link').count(),1);
+        assert.equal(await page.locator('#about').count(),0); assert.equal(await page.locator('#contact .email-link').count(),1);
         await page.screenshot({path:path.join(os.tmpdir(),'portfolio-mobile.png')});
       }
       await page.setViewportSize({width:1440,height:1000});
