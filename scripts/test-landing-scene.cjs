@@ -1,46 +1,115 @@
-const {chromium}=require('playwright'),assert=require('node:assert/strict'),path=require('node:path'),os=require('node:os');
-(async()=>{const {server,base}=await require('./browser-test-server.cjs')();const browser=await chromium.launch({channel:'chrome',headless:true});
-try{
- const context=await browser.newContext({viewport:{width:1672,height:941}});await context.addInitScript(()=>sessionStorage.setItem('alephonIntroSeen','1'));
- const p=await context.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));p.on('console',m=>{if(m.type()==='error')errors.push(m.text())});
- await p.goto(base);await p.waitForSelector('.is-scene-ready canvas');await p.waitForTimeout(600);
- assert.equal(await p.locator('.stage-reference,.landing-terrain,.engineering-grid').count(),0);
- assert.equal((await p.locator('.brand-name').textContent()).trim(),'Luis Albos');
- assert.equal((await p.locator('.brand-details').textContent()).replace(/\s+/g,' ').trim(),'Engineering Portfolio Aerospace Systems & Mechatronics');
- assert.deepEqual(await p.locator('.primary-nav a').allTextContents(),['Portfolio','Resume','Resources']);
- assert.equal(await p.locator('.stage-motto,.stage-annotation,.landing-discipline,.landing-fields,.rail-footnote').count(),0);
- assert.equal((await p.locator('.landing-biography h1').textContent()).trim(),"Hey, I'm Luis!");
- assert.equal(await p.locator('.landing-biography p').count(),1);
- assert.equal((await p.locator('.landing-biography p').textContent()).trim(),"I'm a multidisciplinary engineer with experience across aircraft design and manufacturing, robotics, controls, digital engineering, and technical leadership. Aviation is where most of my passion lives, especially flight test, aircraft systems, autonomy, and the intersection of hardware, software, and real-world testing. Outside of work, I'm usually building something just to understand it better, from robots and control systems to CAD aircraft, spacecraft concepts, and digital tools.");
- const projectCopy=(await p.locator('.aircraft-heading').textContent()).replace(/\s+/g,' ').trim();
- assert.match(projectCopy,/Featured Project/);assert.match(projectCopy,/SAE AERO\s*REGULAR CLASS '24-'25/);
- assert.match(projectCopy,/Competition Aircraft . SolidWorks . SAE Aero Design/);assert.match(projectCopy,/Chapters I–II . Pages 03.14/);
- assert.equal(await p.locator('.project-summary').count(),1);
- assert.equal(await p.locator('.scene-note').count(),3);
- assert.equal(await p.locator('.registration-geometry').count(),0);
- const config=await p.evaluate(async()=>{const {AIRCRAFT_CONFIG:w,TERRAIN_CONFIG:t}=await import('./js/experience-config.js');return {w,t}});
- assert.ok(config.t.direction.x>0 && config.t.direction.z===0,'terrain travels opposite the -X source nose');
- assert.ok(config.w.surface.roughness>.9 && config.w.surface.metalness===0,'matte dielectric material');
- assert.equal(await p.locator('.landing-stage').evaluate(e=>getComputedStyle(e).backgroundColor),await p.locator('.viewer-stage').evaluate(e=>getComputedStyle(e).backgroundColor));
+const {chromium}=require('playwright');
+const assert=require('node:assert/strict');
+const path=require('node:path');
+const os=require('node:os');
 
- const first=await p.locator('.scene-canvas').screenshot();
- await p.screenshot({path:path.join(os.tmpdir(),'contour-landing-desktop.png')});
- await p.waitForTimeout(2400);const second=await p.locator('.scene-canvas').screenshot();assert.ok(!first.equals(second),'terrain and aircraft progress during idle');
- await p.screenshot({path:path.join(os.tmpdir(),'contour-glide-later.png')});
- await p.locator('.open-portfolio').click();await p.waitForTimeout(420);await p.screenshot({path:path.join(os.tmpdir(),'contour-morph.png')});
- await p.waitForFunction(()=>document.documentElement.dataset.view==='viewer');assert.equal(await p.locator('.scene-canvas canvas').count(),0);
- await p.locator('[data-home]').click();await p.waitForSelector('.is-scene-ready canvas');
- await p.emulateMedia({reducedMotion:'reduce'});await p.waitForTimeout(300);
+(async()=>{
+ const {server,base}=await require('./browser-test-server.cjs')();
+ const browser=await chromium.launch({channel:'chrome',headless:true});
+ try {
+  const context=await browser.newContext({viewport:{width:1586,height:992}});
+  await context.addInitScript(()=>sessionStorage.setItem('alephonIntroSeen','1'));
+  const p=await context.newPage(),errors=[];
+  p.on('pageerror',error=>errors.push(error.message));
+  p.on('console',message=>{if(message.type()==='error')errors.push(message.text())});
+  await p.goto(base);
+  await p.waitForSelector('.is-scene-ready canvas');
 
- const frozen1=await p.locator('.scene-canvas').screenshot();await p.waitForTimeout(600);const frozen2=await p.locator('.scene-canvas').screenshot();assert.ok(frozen1.equals(frozen2),'reduced motion freezes the entire scene');
- for(const [width,height] of [[2560,1440],[390,844],[768,1024]]){await p.setViewportSize({width,height});await p.waitForTimeout(300);assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));if(width<760){
- const heading=await p.locator('.landing-biography h1').boundingBox(),bio=await p.locator('.landing-biography p').boundingBox(),cta=await p.locator('.open-portfolio').boundingBox(),stage=await p.locator('.landing-stage').boundingBox();
- assert.ok(heading.y<bio.y && bio.y+bio.height<cta.y && cta.y<stage.y,'mobile heading, biography, CTA, and aircraft retain their hierarchy');
- }await p.screenshot({path:path.join(os.tmpdir(),`contour-${width}.png`)});}
- assert.deepEqual(errors,[]);await context.close();
- const low=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true});await low.addInitScript(()=>{sessionStorage.setItem('alephonIntroSeen','1');Object.defineProperty(navigator,'hardwareConcurrency',{get:()=>2})});
- const lp=await low.newPage();await lp.goto(base);await lp.waitForSelector('.is-scene-ready canvas');
- assert.ok(await lp.locator('canvas').evaluate(c=>c.width<=Math.ceil(c.getBoundingClientRect().width)),'low-power rendering caps DPR at one');
- await lp.locator('.open-portfolio').click();await lp.waitForFunction(()=>document.documentElement.dataset.view==='viewer');await low.close();
- console.log('PASS: contour/glide progression, overlay removal, scene disposal/morph, reduced-motion freeze, responsive layouts, low-power path, no console errors.');
-}finally{await browser.close();server.close()}})().catch(e=>{console.error(e);process.exitCode=1});
+  assert.equal((await p.locator('.brand-name').textContent()).trim(),'Luis Albos');
+  assert.deepEqual(await p.locator('.primary-nav a').allTextContents(),['Portfolio','Resume','Resources']);
+  assert.equal(await p.locator('.brand-details').evaluate(e=>getComputedStyle(e).display),'none');
+  assert.equal((await p.locator('.landing-kicker').textContent()).trim(),'Engineering Portfolio');
+  assert.equal((await p.locator('.landing-intro h1').innerText()).replace(/\s+/g,' ').trim(),'Aerospace Systems & Mechatronics');
+  assert.equal((await p.locator('.landing-summary').textContent()).trim(),
+   'Design, analysis, and prototyping of aerospace systems with a focus on lightweight structures, controls, and integrated mechatronic systems.');
+  assert.equal((await p.locator('.landing-resume').textContent()).trim(),'Resume');
+  assert.equal(await p.locator('.landing-biography,.rail-facts,.aircraft-heading,.scene-registration,.scene-note,.selected-work').count(),0);
+  assert.equal(await p.locator('.landing-stage').evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(254, 253, 250)');
+
+  const boxes=await p.evaluate(()=>Object.fromEntries(
+   ['.site-header','.landing-kicker','.landing-intro h1','.landing-summary','.open-portfolio','.landing-stage']
+    .map(selector=>{const r=document.querySelector(selector).getBoundingClientRect();return [selector,{x:r.x,y:r.y,width:r.width,height:r.height}]})));
+  const near=(value,target,tolerance,label)=>assert.ok(Math.abs(value-target)<=tolerance,`${label}: ${value} should be near ${target}`);
+  near(boxes['.site-header'].height,80,2,'header height');
+  near(boxes['.landing-kicker'].x,70,4,'copy left');
+  near(boxes['.landing-kicker'].y,211,12,'kicker top');
+  near(boxes['.landing-intro h1'].y,293,16,'headline top');
+  near(boxes['.landing-summary'].y,456,16,'summary top');
+  near(boxes['.open-portfolio'].x,71,4,'action left');
+  near(boxes['.open-portfolio'].y,647,16,'action top');
+  near(boxes['.landing-stage'].x,0,1,'unboxed scene left');
+  assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth),1586);
+
+  const config=await p.evaluate(async()=>{const {AIRCRAFT_CONFIG:a,TERRAIN_CONFIG:t}=await import('./js/experience-config.js');return {a,t}});
+  assert.equal(config.a.model,'../reference/CP1_2024.glb');
+  assert.ok(config.t.direction.x>0 && config.t.direction.z===0,'terrain travels aft from the -X nose');
+  assert.equal(config.a.surface.color,0xfefdfa,'paper-colored aircraft fill');
+  assert.ok(config.a.edges.silhouetteOpacity>.8&&config.a.edges.internalOpacity>.25,'dark technical linework');
+  assert.ok(config.a.position.y>0,'aircraft is raised above its original origin');
+
+  const first=await p.locator('.scene-canvas').screenshot();
+  await p.screenshot({path:path.join(os.tmpdir(),'light-airborne-desktop.png')});
+  await p.waitForTimeout(2400);
+  const second=await p.locator('.scene-canvas').screenshot();
+  assert.ok(!first.equals(second),'default aircraft and terrain motion progress');
+
+  await p.locator('.open-portfolio').click();
+  await p.waitForFunction(()=>document.documentElement.dataset.view==='viewer');
+  assert.equal(await p.locator('.scene-canvas canvas').count(),0,'scene disposes after viewer entry');
+  await p.locator('[data-home]').click();
+  await p.waitForSelector('.is-scene-ready canvas');
+  await p.emulateMedia({reducedMotion:'reduce'});
+  await p.waitForTimeout(300);
+  const frozen1=await p.locator('.scene-canvas').screenshot();
+  await p.waitForTimeout(600);
+  const frozen2=await p.locator('.scene-canvas').screenshot();
+  assert.ok(frozen1.equals(frozen2),'reduced motion freezes the entire scene');
+
+  for(const [width,height] of [[2560,1440],[390,844],[768,1024]]){
+   await p.setViewportSize({width,height});
+   await p.waitForTimeout(250);
+   assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'no horizontal overflow');
+   if(width===390){
+    const heading=await p.locator('.landing-intro h1').boundingBox();
+    const summary=await p.locator('.landing-summary').boundingBox();
+    const cta=await p.locator('.open-portfolio').boundingBox();
+    const stage=await p.locator('.landing-stage').boundingBox();
+    assert.ok(heading.y<summary.y && summary.y+summary.height<cta.y && cta.y+cta.height<stage.y,
+     'phone copy, action, and aircraft follow reading order');
+    assert.ok(heading.height>70 && summary.height>80,'phone text remains readable');
+   }
+   await p.screenshot({path:path.join(os.tmpdir(),`light-airborne-${width}.png`)});
+  }
+  assert.deepEqual(errors,[]);
+  await context.close();
+
+  const fallback=await browser.newContext({viewport:{width:1586,height:992}});
+  await fallback.addInitScript(()=>{
+   sessionStorage.setItem('alephonIntroSeen','1');
+   const getContext=HTMLCanvasElement.prototype.getContext;
+   HTMLCanvasElement.prototype.getContext=function(type,...args){return type==='webgl2'?null:getContext.call(this,type,...args)};
+  });
+  const fp=await fallback.newPage();
+  await fp.goto(base);
+  await fp.waitForFunction(()=>document.querySelector('.landing-stage')?.dataset.scene==='unavailable');
+  assert.ok(await fp.locator('.open-portfolio').isVisible());
+  assert.ok(await fp.locator('.landing-resume').isVisible());
+  await fp.screenshot({path:path.join(os.tmpdir(),'light-airborne-fallback.png')});
+  await fallback.close();
+
+  const low=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true});
+  await low.addInitScript(()=>{
+   sessionStorage.setItem('alephonIntroSeen','1');
+   Object.defineProperty(navigator,'hardwareConcurrency',{get:()=>2});
+  });
+  const lp=await low.newPage();
+  await lp.goto(base);
+  await lp.waitForSelector('.is-scene-ready canvas');
+  assert.ok(await lp.locator('canvas').evaluate(c=>c.width<=Math.ceil(c.getBoundingClientRect().width)),
+   'low-power rendering caps DPR at one');
+  await lp.locator('.open-portfolio').click();
+  await lp.waitForFunction(()=>document.documentElement.dataset.view==='viewer');
+  await low.close();
+  console.log('PASS: editorial anchors, airborne scene, motion, viewer handoff, responsive layout, fallback, low-power path.');
+ } finally {await browser.close();server.close()}
+})().catch(error=>{console.error(error);process.exitCode=1});

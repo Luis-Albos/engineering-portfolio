@@ -22,14 +22,28 @@ function heightAt(x,z) {
   const wz=config.warp*(noise(u*cycles+3,v*cycles+29,cycles)-.5);
   const px=u*cycles+wx,pz=v*cycles+wz;
   const broad=noise(px,pz,cycles);
-  const ridgeSample=2*noise(px*2+8,pz*2+3,cycles*2)-1;
-  const ridge=1-ridgeSample*ridgeSample;
-  const detail=noise(px*4+41,pz*4+9,cycles*4)-.5;
-  // A fixed, periodic depth envelope keeps the flight corridor low and the
-  // larger mountains behind it. It travels with the same immutable geometry.
-  const background=Math.max(0,-Math.sin(v*Math.PI*2));
-  const depthScale=config.valleyScale+(1-config.valleyScale)*background*background;
-  return config.heightScale*depthScale*(broad+config.roughness*(.48*ridge+.16*detail));
+  // Uneven, overlapping summits form three ranges. Periodic X distance keeps
+  // the shared tiles seamless, while their Z footprints leave a low corridor.
+  const periodicX=center=>((x-center+config.size*1.5)%config.size)-config.size*.5;
+  const irregular=config.roughness*(.58*(noise(px*2+8,pz*2+3,cycles*2)-.5)
+    +.34*(noise(px*4+41,pz*4+9,cycles*4)-.5)
+    +.19*(noise(px*8+19,pz*8+31,cycles*8)-.5));
+  const peak=(cx,cz,rx,rz,height)=>{
+    const radius=Math.hypot(periodicX(cx)/rx,(z-cz)/rz)+irregular;
+    return height*Math.pow(Math.max(0,1-radius),1.4);
+  };
+  const band=(center,width)=>Math.exp(-Math.pow((z-center)/width,2));
+  const shelves=.1*band(-23,13)+.11*band(-11,15)+.06*band(18,13);
+  const rear=peak(-23,-24,13,10,.43)+peak(-5,-25,12,9,.54)
+    +peak(14,-23,14,10,.47)+peak(29,-25,11,9,.38)
+    +peak(-14,-26,5,5,.19)+peak(7,-23,6,5,.23)+peak(24,-24,5,4,.2);
+  const middle=peak(-20,-11,12,10,.47)+peak(1,-13,14,11,.83)
+    +peak(20,-10,12,10,.58)+peak(-10,-11,5,5,.25)
+    +peak(10,-14,6,5,.27)+peak(29,-10,5,5,.2);
+  const foreground=peak(-12,19,15,10,.39)+peak(13,18,14,10,.52)
+    +peak(-22,21,6,6,.25)+peak(0,17,6,5,.23)+peak(22,20,5,6,.21);
+  return config.heightScale*(config.valleyScale*(.18+.28*broad)
+    +shelves+.72*(rear+middle)+1.2*foreground);
 }
 
 export function createContourTerrain(options={}) {
@@ -37,10 +51,10 @@ export function createContourTerrain(options={}) {
   if(!options.yieldWork){let step;do{step=work.next();}while(!step.done);return step.value;}
   return (async()=>{try{let step;while(!(step=work.next()).done)await options.yieldWork();return step.value;}catch(error){work.return();throw error;}})();
 }
-function* buildContourTerrain({lowDetail=false}={}) {
-  const palette=getComputedStyle(document.documentElement);
-  const background=new THREE.Color(palette.getPropertyValue(LANDING_PALETTE.backgroundVariable).trim()||'#171a1e');
-  const lineColor=new THREE.Color(palette.getPropertyValue(LANDING_PALETTE.contourVariable).trim()||'#aeb3b8');
+function* buildContourTerrain({lowDetail=false,paletteElement=document.documentElement}={}) {
+  const palette=getComputedStyle(paletteElement);
+  const background=new THREE.Color(palette.getPropertyValue(LANDING_PALETTE.backgroundVariable).trim()||'#fefdfa');
+  const lineColor=new THREE.Color(palette.getPropertyValue(LANDING_PALETTE.contourVariable).trim()||'#a6a29b');
   const segments=lowDetail?config.lowSegments:config.segments;
   const geometry=new THREE.PlaneGeometry(config.size,config.size,segments,segments);
   geometry.rotateX(-Math.PI/2);
@@ -57,7 +71,8 @@ function* buildContourTerrain({lowDetail=false}={}) {
     uniforms:{background:{value:background},lineColor:{value:lineColor},density:{value:config.contourDensity},
       intensity:{value:config.contourOpacity},lineWidth:{value:config.lineWidth},fade:{value:1},
       fogNear:{value:config.fogNear},fogFar:{value:config.fogFar},extent:{value:config.size*.5},
-      resolution:{value:new THREE.Vector2(1,1)},aliasFade:{value:new THREE.Vector2(...config.aliasFade)}},
+      resolution:{value:new THREE.Vector2(1,1)},aliasFade:{value:new THREE.Vector2(...config.aliasFade)},
+      textBoundary:{value:.36}},
     vertexShader:`
       varying float elevation,viewDepth;varying vec2 ground;varying vec3 terrainNormal;
       void main(){
@@ -68,7 +83,7 @@ function* buildContourTerrain({lowDetail=false}={}) {
         gl_Position=projectionMatrix*view;
       }`,
     fragmentShader:`
-      uniform float density,intensity,lineWidth,fade,fogNear,fogFar,extent;
+      uniform float density,intensity,lineWidth,fade,fogNear,fogFar,extent,textBoundary;
       uniform vec2 resolution,aliasFade;uniform vec3 background,lineColor;
       varying float elevation,viewDepth;varying vec2 ground;varying vec3 terrainNormal;
       // Integral of a periodic line pulse. Integrating over the pixel footprint
@@ -91,12 +106,15 @@ function* buildContourTerrain({lowDetail=false}={}) {
         // Fade in world space, not at moving tile edges; seams remain invisible.
         float edge=1.0-smoothstep(extent*.72,extent,max(abs(ground.x),abs(ground.y)));
         vec2 screen=gl_FragCoord.xy/resolution;
-        float atmosphere=smoothstep(.06,.75,1.0-screen.y+screen.x*.32);
-        float ink=contour*intensity*fog*atmosphere;
-        // Subtle terrain-only relief lighting makes the fixed ridges legible.
+        float textFade=smoothstep(textBoundary-.07,textBoundary+.1,screen.x);
+        float sideFade=smoothstep(.0,.07,screen.x)*(1.0-smoothstep(.93,1.0,screen.x));
+        float verticalFade=smoothstep(.0,.1,screen.y)*(1.0-smoothstep(.9,1.0,screen.y));
+        float screenFade=textFade*sideFade*verticalFade;
+        // A little relief gives the contours depth without filling the paper.
         float light=max(0.0,dot(normalize(terrainNormal),normalize(vec3(-.35,.8,.3))));
-        vec3 relief=background*(.60+.65*light);
-        gl_FragColor=vec4(mix(relief,lineColor,ink),fade*edge*fog);
+        float relief=(1.0-light)*.055;
+        gl_FragColor=vec4(mix(background,lineColor,.9),
+          (contour*intensity+relief)*fade*edge*fog*screenFade);
         #include <colorspace_fragment>
       }`
   });
@@ -111,7 +129,11 @@ function* buildContourTerrain({lowDetail=false}={}) {
   const wrap=value=>THREE.MathUtils.euclideanModulo(value+config.size*.5,config.size)-config.size*.5;
   complete=true;
   return {mesh,
-    resize(width,height,pixelRatio=1){material.uniforms.resolution.value.set(width,height);material.uniforms.lineWidth.value=config.lineWidth*pixelRatio;},
+    resize(width,height,pixelRatio=1,textBoundary=.36){
+      material.uniforms.resolution.value.set(width,height);
+      material.uniforms.lineWidth.value=config.lineWidth*pixelRatio;
+      material.uniforms.textBoundary.value=textBoundary;
+    },
     update(seconds,opacity=1){
       mesh.position.x=wrap(seconds*config.forwardSpeed*direction.x);
       mesh.position.z=wrap(seconds*config.forwardSpeed*direction.y);

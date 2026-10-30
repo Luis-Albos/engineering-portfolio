@@ -123,10 +123,10 @@ GitHub will publish the site at `https://YOUR-USERNAME.github.io/REPOSITORY-NAME
 
 ## Landing / Intro System
 
-The homepage uses one real `.portfolio-layout` grid and one header for both the
-landing environment and the existing portfolio viewer. The two content states
-share `--sidebar-width` and `--header-height`. There is no duplicate viewer or
-frontend framework. About and Contact remain below the shell.
+The homepage uses one `.portfolio-layout` and one header for the landing and
+existing portfolio viewer. Landing content and the scene overlap as an open
+editorial composition; the viewer retains its own sidebar. Both states share
+the same navigation lifecycle without a duplicate viewer or frontend framework.
 
 - `js/experience.js`: shell state, entry/return, focus, history, and scene lifecycle.
 - `js/boot.js` + `css/boot.css`: the cancellable Alephon cinematic. One animation-frame
@@ -152,11 +152,10 @@ landing immediately, before paint. They do not import Three.js or fetch the mesh
 Portfolio links from Resume and Resources open the viewer; the homepage brand
 returns to the landing without replaying boot. Back/Forward follow the URL state.
 
-Opening Portfolio starts a **950 ms** in-place transformation: the landing rail
-fades upward 8 px; secondary, major, then silhouette edges dim over 500 ms; the
-grid/reference frame dims; the actual portfolio image fades/scales from .97; and
-viewer controls resolve last. The header and grid boundary stay fixed. Reduced
-motion uses a 100 ms state change. The existing viewer handles its own images,
+Opening Portfolio starts a **950 ms** in-place transformation: the editorial
+introduction fades, terrain and aircraft edges dim, and the actual portfolio
+image fades/scales from .97 as viewer controls resolve. The shared header stays
+in place. Reduced motion uses a 100 ms state change. The existing viewer handles its own images,
 request tokens, preloads, search, and page navigation. Its keyboard handler is
 inactive while that viewer is inert on the landing.
 
@@ -165,21 +164,24 @@ inactive while that viewer is inert on the landing.
 `reference/alephon-icon.svg` is the real mark. The early sequence in
 `reference/Dan Neuenhaus danneuenhaus Instagram reel.mp4` supplied motion guidance;
 the radar portion is intentionally excluded. The video is not embedded or fetched.
-The revised landing screenshot supplied composition guidance only; no screenshot is
-served by the live site. The current landing aircraft is the SAE Aero Regular Class
+The approved DC-0008 concept is stored at
+`openspec/changes/light-airborne-landing/references/dc-0008-concept.png` for visual
+review; it is not served as the landing. The current aircraft is the SAE Aero Regular Class
 assembly in `reference/CP1_2024.glb`. Older Wyvern landing meshes, conversion tools,
 and image fallbacks were removed after the landing migrated to this aircraft.
 
 Three.js **0.180.0** and GLTFLoader are vendored under `assets/vendor/three/` with
 their MIT license. `experience.js` dynamically imports the scene only for landing
 visits. No CDN or server runtime is used. The GLB geometry receives the established
-matte surface and feature/silhouette edge treatment without changing the source model.
+paper-colored opaque fill and dark feature/silhouette edge treatment without
+changing the source model. The fill hides rear lines and terrain through the
+aircraft; the linework carries its moving-sketch appearance.
 
 The aircraft glides on a 12.5-second base cycle: approximately 5.2° total yaw,
 2.5° total pitch, 4° total bank, with 0.09-unit vertical, 0.14-unit lateral, and
 0.12-unit longitudinal drift amplitudes. Motion pauses cleanly when offscreen or
 in a hidden tab rather than jumping ahead on return. Reduced motion freezes both
-terrain and aircraft. Rendering remains capped at 24 fps and 1.5 device pixel ratio.
+terrain and aircraft. Rendering is capped at the configured 60 fps and 1.5 device pixel ratio.
 Coarse-pointer/low-core devices use a smaller terrain grid and DPR 1; sustained
 slow frame delivery also lowers DPR to 1. Entry fades terrain and edge layers,
 then disposes geometry/materials, observers, renderer, context, and animation frame.
@@ -199,23 +201,20 @@ including under `/engineering-portfolio/`.
 
 ### Contour terrain refinement
 
-`js/contour-terrain.js` creates a perspective heightfield beneath the aircraft.
-A domain-warped macro noise field, ridged middle octave, and two small roughness
-octaves produce broken rolling forms rather than uniform dunes. The vertex shader
-displaces the grid; the fragment shader evaluates the same continuous height field
-for smooth contours between mesh vertices. Derivative antialiasing suppresses
-subpixel shimmer. Every fifth level is slightly emphasized; distance/edge fog keeps
-the far field subdued. This replaces the targeting circle, crosshair axes, dot-grid
-background, and decorative triangular mountain SVG.
+`js/contour-terrain.js` builds its heightfield once on the CPU. Periodic noise,
+overlapping rear/middle/foreground summits, and a low flight corridor form the
+mountain ranges. Shared geometry tiles translate rigidly aft (+X for this model's
+-X nose) and wrap at identical edge heights. The vertex shader passes fixed
+elevation to the fragment shader, which draws antialiased contour levels. Every
+fifth level is emphasized slightly. Distance and world-edge fog, plus a responsive
+screen-space mask, fade only the terrain near the text and all viewport edges.
+The real aircraft stays crisp over the warm light canvas.
 
-Only a travel uniform changes each frame. Sampling coordinates scroll through a
-continuous deterministic field; the grid does not wrap a repeating tile. Perspective
-makes nearby contours move faster than distant ones. The terrain stays below the
-jet's motion envelope and dims with the existing 950 ms portfolio morph.
-
-Tune `TERRAIN_CONFIG` in `js/experience-config.js`: `roughness`, `heightScale`,
-`frequency`, `warp`, `forwardSpeed`, `direction`, `contourDensity`, `contourOpacity`,
-`lineWidth`, and fog distances. `segments`/`lowSegments` control vertex cost.
+Tune `TERRAIN_CONFIG` in `js/experience-config.js`: `heightScale`, `valleyScale`,
+`roughness`, `cycles`, `warp`, `forwardSpeed`, `direction`, `contourDensity`,
+`contourOpacity`, `lineWidth`, and fog distances. `segments`/`lowSegments` control
+vertex cost. `LANDING_PALETTE` reads the scene's `--landing-bg` and
+`--landing-contour` CSS tokens; the viewer keeps its separate palette.
 `AIRCRAFT_CONFIG.surface`, `.edges`, and `.idle` control smoothness, highlights,
 feature filtering, edge opacity, drift, yaw/pitch/bank, and cycle length.
 No additional runtime dependency, backend, image texture, or runtime CAD conversion
@@ -244,19 +243,14 @@ Regenerate them after replacing portfolio pages with
 `python scripts/build_portfolio_thumbnails.py`; this uses Pillow from the existing
 `requirements-study.txt` development dependencies.
 
-### Personal landing refinement
+### Light editorial landing
 
-The shared homepage header carries the formal Luis Albos identity and engineering descriptor.
-A concise personal heading and single-paragraph biography live in the landing rail above the
-archive action. The same hierarchy stacks ahead of the aircraft on mobile without duplicating
-identity copy.
-The project label is factual; decorative slogans and category lists have been removed.
-
-The landing and viewer use `--viewer-bg`, with `--muted` contour ink. `LANDING_PALETTE`
-selects those CSS tokens for the terrain shader. `AIRCRAFT_CONFIG.surface` controls base
-color, roughness, metalness and normal crease; `.lighting` controls key and hemisphere
-fill intensity. Existing `.idle` amplitudes and period retain the gliding motion.
-`TERRAIN_CONFIG` controls roughness, contour density/opacity, speed and direction.
-The source nose points along +X, so terrain features travel along -X (aft), rather than
-merely reversing a screen-space animation. Continuous sampling preserves the endless flow.
-The same shell, fade, dismissal and viewer materialization sequence remains in use.
+At the 1586 × 992 reference viewport, the warm ivory landing matches DC-0008's
+slim ruled header, large left headline and short description, Open Portfolio and
+secondary Resume, and unboxed aircraft on the center-right. The landing-specific
+`.landing-rail` DOM hook remains for scene lifecycle, but no visible sidebar or
+featured-project annotation appears. On narrow screens, the copy and action stay
+ahead of the scene in reading order. The aircraft is the real
+`reference/CP1_2024.glb`, raised over the mountain field with a paper-colored fill
+and dark sketch lines.
+The existing viewer, flipbook planning, resume, and resources are separate work.

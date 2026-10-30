@@ -1,179 +1,185 @@
-/* One grid and one header for both home and the existing document viewer. */
+/* The landing and viewer keep one header, grid, and navigation lifecycle. */
 :root { --shell-height: calc(100svh - var(--header-height)); }
-[data-view] .portfolio-layout { grid-template-rows: minmax(var(--shell-height),auto); }
-[data-view] .portfolio-sidebar, .landing-rail { grid-area: 1 / 1; }
-[data-view] .viewer-main, .landing-stage { grid-area: 1 / 2; }
-[data-view] .portfolio-sidebar, .landing-rail { height: var(--shell-height); min-height: 620px; }
-.landing-rail { position: relative; z-index: 11; display: flex; flex-direction: column; justify-content: space-between; padding: 34px 24px 26px 38px; background: #111417; border-right: 1px solid #1b1f23; }
-.landing-identity { transition: opacity .22s, transform .3s; }
-.landing-actions { display: flex; flex-direction: column; gap: 22px; margin-top: 36px; padding-top: 34px; border-top: 1px solid #66737c66; }
-.landing-actions > a { font-size: 10px; text-transform: uppercase; letter-spacing: .15em; align-self: flex-start; }
-.landing-actions > a:hover { color: white; }
-.landing-actions .open-portfolio { width: 100%; min-height: 49px; display: flex; align-items: center; justify-content: center; gap: 14px; border: 1px solid #aab0b2; margin-bottom: 20px; font-weight: 600; transition: background .15s; }
-.open-portfolio:hover { background: #ffffff09; }
-.landing-stage { background: var(--viewer-bg); position: relative; min-width: 0; overflow: hidden; isolation: isolate; min-height: 620px; height: var(--shell-height); }
-.aircraft-heading { position: absolute; z-index: 3; left: 5.5%; top: 7%; width: min(420px,36%); pointer-events: none; }
-.aircraft-heading h2 { margin: 0; font: 400 clamp(19px,1.8vw,32px)/1.5 var(--serif); letter-spacing: .24em; }
-.aircraft-heading p { font-size: 9px; line-height: 1.8; letter-spacing: .28em; text-transform: uppercase; color: #939fa6; margin-top: 20px; }
-.aircraft-heading .featured-kicker { display: flex; align-items: center; gap: 13px; margin: 0 0 16px; white-space: nowrap; }
-.featured-kicker::after { content: ''; width: 90px; height: 1px; background: #aeb3b84d; }
-.aircraft-heading .project-meta { margin: 8px 0 0; text-transform: none; letter-spacing: .06em; font-size: 11px; color: var(--muted); }
-.aircraft-heading .project-summary { max-width: 340px; margin: 12px 0 0; font-size: 11px; line-height: 1.65; letter-spacing: 0; text-transform: none; color: #aeb3b8d9; }
-.aircraft-heading .project-index { margin: 14px 0 0; font-size: 8px; letter-spacing: .22em; color: #c4c7c7; }
-.scene-viewport { position: absolute; inset: 0; pointer-events: none; background: var(--viewer-bg); }
+html[data-view] { --header-height: 80px; }
+html[data-view=landing], html[data-view=opening] {
+  color-scheme: light;
+  --bg: #fefdfa;
+  --viewer-bg: #fefdfa;
+  --text: #1c1e21;
+  --muted: #5c6065;
+}
+html[data-view] .site-header {
+  position: relative;
+  height: var(--header-height);
+  padding-inline: clamp(32px,4.45vw,86px);
+  background: #fefdfa;
+  color: #1c1e21;
+  border: 0;
+}
+html[data-view] .site-header::after {
+  content: ''; position: absolute; bottom: 0;
+  left: clamp(32px,4.45vw,86px); right: clamp(32px,4.45vw,86px);
+  height: 1px; background: #aeb0b1;
+}
+html[data-view] .brand-name { font-size: 29px; letter-spacing: .13em; line-height: 1; }
+html[data-view] .brand-details { display: none; }
+html[data-view] .primary-nav { gap: clamp(28px,3.3vw,54px); }
+html[data-view] .primary-nav a { color: #383e45; font-size: 12px; letter-spacing: .13em; }
+html[data-view] .primary-nav a:is(:hover,:focus-visible,.is-active) { color: #111316; }
+html[data-view] .site-header :focus-visible { outline-color: #25282c; }
+
+[data-view=landing] .portfolio-layout {
+  grid-template-columns: minmax(0,1fr);
+  grid-template-rows: minmax(var(--shell-height),auto);
+  background: #fefdfa;
+}
+[data-view=landing] .portfolio-sidebar, [data-view=landing] .viewer-main { display: none; }
+[data-view=viewer] .landing-rail, [data-view=viewer] .landing-stage { display: none; }
+[data-view=landing] .site-footer { display: none; }
+.landing-rail, .landing-stage { grid-area: 1 / 1; min-width: 0; height: var(--shell-height); min-height: 690px; }
+.landing-rail {
+  position: relative; z-index: 3; background: transparent; border: 0;
+  pointer-events: none;
+}
+.landing-identity { width: 100%; height: 100%; }
+.landing-intro {
+  position: absolute; left: clamp(32px,4.45vw,86px); top: clamp(104px,13.2vh,146px);
+  width: min(490px,38vw); pointer-events: auto;
+}
+.landing-kicker {
+  margin: 0; color: #535860;
+  font-size: 13px; line-height: 20px; font-weight: 500;
+  letter-spacing: .36em; text-transform: uppercase;
+}
+.landing-kicker::after {
+  content: ''; display: block; width: 72px; height: 1px;
+  margin-top: 18px; background: #abb0b4;
+}
+.landing-intro h1 {
+  margin: 43px 0 0; color: #111316;
+  font: 400 clamp(48px,3.85vw,64px)/1.15 var(--serif);
+  letter-spacing: -.04em; white-space: nowrap;
+}
+.landing-summary {
+  max-width: 445px; margin: 23px 0 0; color: #62666b;
+  font: 400 clamp(20px,1.47vw,24px)/1.47 var(--serif);
+  letter-spacing: .015em;
+}
+.landing-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 35px 50px; margin-top: 54px; }
+.landing-actions .open-portfolio {
+  width: 286px; min-height: 59px; display: inline-flex; align-items: center;
+  justify-content: center; gap: 18px; padding: 0 20px;
+  background: #272a2f; color: #fff; border: 1px solid #272a2f;
+  font-size: 14px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase;
+  transition: background .2s, transform .2s;
+}
+.landing-actions .open-portfolio:hover { background: #3b3e43; }
+.landing-actions .open-portfolio:focus-visible, .landing-resume:focus-visible { outline-color: #272a2f; }
+.landing-resume {
+  color: #54585d; border-bottom: 1px solid #8d9093;
+  font: 400 20px/1.25 var(--serif);
+}
+.landing-resume:hover { color: #111316; }
+.landing-stage {
+  --landing-bg: #fefdfa;
+  --landing-contour: #a6a29b;
+  position: relative; z-index: 1; overflow: hidden; isolation: isolate;
+  background: #fefdfa;
+}
+.scene-viewport { position: absolute; inset: 0; pointer-events: none; }
 .scene-canvas, .scene-canvas canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 .scene-canvas { opacity: 0; transition: opacity .2s ease; }
 .scene-viewport.is-scene-ready .scene-canvas { opacity: 1; }
-.scene-loading { position: absolute; z-index: 1; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: #aeb3b8; text-align: center; text-transform: uppercase; transition: opacity .2s ease, visibility 0s linear .2s; }
-.scene-loading-title { font-size: 10px; letter-spacing: .24em; }
-.scene-loading-detail { color: #7f898f; font-size: 8px; letter-spacing: .18em; }
+.scene-canvas canvas { pointer-events: auto; touch-action: pan-y; cursor: grab; }
+.scene-canvas canvas.is-dragging { cursor: grabbing; }
+.scene-loading {
+  position: absolute; z-index: 1; inset: 0 0 0 38%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 9px; color: #585d62; text-align: center; text-transform: uppercase;
+  transition: opacity .2s ease, visibility 0s linear .2s;
+}
+.scene-loading-title { font-size: 12px; letter-spacing: .2em; }
+.scene-loading-detail { color: #6b7074; font-size: 10px; letter-spacing: .14em; }
 .scene-loading-line { width: 54px; height: 1px; margin-top: 8px; overflow: hidden; background: #aeb3b829; }
-.scene-loading-line::after { content: ''; display: block; width: 45%; height: 100%; background: #aeb3b899; animation: scene-loading-line 1.4s ease-in-out infinite; }
+.scene-loading-line::after {
+  content: ''; display: block; width: 45%; height: 100%;
+  background: #85898d; animation: scene-loading-line 1.4s ease-in-out infinite;
+}
 .scene-viewport.is-scene-ready .scene-loading { visibility: hidden; opacity: 0; }
-[data-scene=unavailable] .scene-loading-title { color: #929ba0; }
 [data-scene=unavailable] .scene-loading-line { display: none; }
 @keyframes scene-loading-line { from { transform: translateX(-110%); } to { transform: translateX(225%); } }
-/* Shared editorial margins keep all four text anchors on the same frame. */
-.landing-stage { --annotation-x: clamp(24px, 5.5%, 88px); --annotation-y: clamp(28px, 7%, 64px); }
-.aircraft-heading { left: var(--annotation-x); top: var(--annotation-y); }
-.scene-registration { position: absolute; z-index: 2; inset: 0; pointer-events: none; }
-.scene-note { background: #171a1ee8; box-shadow: 0 0 12px 8px #171a1ee8; position: absolute; margin: 0; display: flex; flex-direction: column; gap: 6px; color: #aeb3b8; font-size: 8px; line-height: 1.6; letter-spacing: .15em; text-transform: uppercase; }
-.scene-note::before { content: ''; width: 32px; height: 1px; margin-bottom: 5px; background: #aeb3b84d; }
-.scene-note span:last-child { color: #8e989f; font-size: 7px; letter-spacing: .12em; }
-.note-top-right { top: var(--annotation-y); right: var(--annotation-x); text-align: right; align-items: flex-end; }
-.note-bottom-left { bottom: var(--annotation-y); left: var(--annotation-x); }
-.note-bottom-right { bottom: var(--annotation-y); right: var(--annotation-x); text-align: right; align-items: flex-end; }
-[data-view=landing] .portfolio-sidebar, [data-view=landing] .viewer-main { visibility: hidden; pointer-events: none; }
-[data-view=viewer] .landing-rail, [data-view=viewer] .landing-stage { display: none; }
-[data-view=opening] .landing-rail { pointer-events: none; background: transparent; }
-[data-view=opening] .landing-identity { opacity: 0; transform: translateY(-8px); }
-[data-view=opening] .landing-stage { pointer-events: none; animation: stage-dismiss .55s .3s both; z-index: 2; }
-[data-view=opening] .aircraft-heading { animation: shell-out .2s both; }
+.aircraft-drag-hint { display: none; }
+
+/* The landing dissolves into the existing viewer without a duplicate shell. */
+[data-view=opening] .landing-rail, [data-view=opening] .landing-stage {
+  position: absolute; inset: 0; pointer-events: none;
+}
+[data-view=opening] .landing-rail { z-index: 4; }
+[data-view=opening] .landing-stage { z-index: 2; animation: stage-dismiss .55s .3s both; }
+[data-view=opening] .landing-identity { animation: shell-out .24s both; }
 [data-view=opening] .portfolio-sidebar > * { animation: shell-in .35s .25s both; }
 [data-view=opening] .portfolio-sidebar .chapter-nav { animation-delay: .4s; }
 [data-view=opening] .viewer-main { z-index: 3; pointer-events: none; }
 [data-view=opening] .viewer-stage { background: transparent; }
-[data-view=opening] .image-frame { animation: document-in .35s .4s both; outline: 1px solid #87939755; }
+[data-view=opening] .image-frame { animation: document-in .35s .4s both; }
 [data-view=opening] .viewer-controls { animation: shell-in .25s .65s both; }
-[data-view=opening] .open-portfolio { background: #ffffff18; }
 [data-view=landing].home-return .landing-rail, [data-view=landing].home-return .landing-stage { animation: shell-in .45s both; }
 @keyframes shell-in { from { opacity: 0; transform: translateY(6px); } }
 @keyframes shell-out { to { opacity: 0; } }
 @keyframes document-in { from { opacity: 0; transform: scale(.97); } }
 @keyframes stage-dismiss { to { opacity: 0; } }
-[data-boot=playing] body { overflow: hidden; }
-@media (min-width: 1051px) { [data-view] .site-header { position: relative; } }
-@media (max-width: 1050px) and (min-width: 761px) { :root { --sidebar-width: 268px; } .landing-rail { padding-left: 24px; } .aircraft-heading { top: 5%; width: 38%; } .aircraft-heading .project-summary { font-size: 10px; } }
+
+@media (max-width: 1050px) {
+  html[data-view] { --header-height: 82px; }
+  html[data-view] .site-header { padding-inline: 24px; }
+  html[data-view] .site-header::after { left: 24px; right: 24px; }
+  .landing-intro { width: min(490px,48vw); }
+}
 @media (max-width: 760px) {
-  [data-view=landing] .portfolio-layout { display: grid; min-height: var(--shell-height); grid-template-columns: 1fr; grid-template-rows: auto minmax(310px,1fr); }
-  [data-view=landing] .portfolio-sidebar, [data-view=landing] .viewer-main { display: none; }
-  .landing-rail { grid-area: 1/1; min-height: 0 !important; height: auto !important; padding: 24px 24px 12px; border-right: 0; }
-  .landing-actions { margin-top: 17px; padding-top: 18px; gap: 16px; flex-direction: row; flex-wrap: wrap; align-items: center; }
-  .landing-actions .open-portfolio { width: 100%; max-width: 330px; margin: 0; }
-  .landing-actions > a:not(.open-portfolio) { font-size: 8px; padding: 5px 0; }
-  .landing-stage { grid-area: 2/1; height: auto; min-height: 500px; }
-  .aircraft-heading { top: 5%; left: 6%; }
-  .aircraft-heading { width: 88%; }
-  .aircraft-heading h2 { font-size: 16px; line-height: 1.35; letter-spacing: .17em; }
-  .aircraft-heading .featured-kicker { margin-bottom: 10px; font-size: 7px; }
-  .featured-kicker::after { width: 48px; }
-  .aircraft-heading .project-meta { display: block; margin-top: 6px; font-size: 9px; }
-  .aircraft-heading .project-summary { max-width: 280px; margin-top: 8px; font-size: 9px; line-height: 1.55; }
-  .aircraft-heading .project-index { margin-top: 9px; font-size: 7px; }
-  .landing-stage { --annotation-x: 6%; --annotation-y: 24px; }
-  .note-top-right { top: var(--annotation-y); max-width: 110px; }
-  .scene-note { font-size: 7px; letter-spacing: .1em; max-width: 46%; }
-  .scene-note span:last-child { font-size: 6px; letter-spacing: .06em; }
+  html[data-view] { --header-height: 74px; }
+  html[data-view] .site-header { position: sticky; top: 0; z-index: 50; }
+  html[data-view] .brand-name { font-size: 20px; }
+  [data-view=landing] .portfolio-layout {
+    display: grid; grid-template-columns: minmax(0,1fr);
+    grid-template-rows: auto minmax(390px,auto); min-height: var(--shell-height);
+  }
+  .landing-rail {
+    grid-area: 1/1; height: auto; min-height: 0;
+    padding: 78px 24px 38px; pointer-events: auto;
+  }
+  .landing-identity { height: auto; }
+  .landing-intro { position: static; width: 100%; }
+  .landing-kicker { font-size: 10px; letter-spacing: .32em; }
+  .landing-kicker::after { margin-top: 15px; }
+  .landing-intro h1 {
+    margin-top: 34px; font-size: clamp(38px,10.2vw,54px);
+    line-height: 1.12; letter-spacing: -.04em;
+  }
+  .landing-summary { max-width: 520px; margin-top: 25px; font-size: 19px; line-height: 1.43; }
+  .landing-actions { margin-top: 35px; gap: 22px 26px; }
+  .landing-actions .open-portfolio { width: min(100%,286px); min-height: 56px; }
+  .landing-stage { grid-area: 2/1; height: 390px; min-height: 390px; }
+  .scene-loading { inset: 0; }
   [data-view=opening] .portfolio-layout { display: block; }
-  [data-view=opening] .landing-rail, [data-view=opening] .landing-stage { position: absolute; inset: 0; opacity: 0; pointer-events: none; }
   [data-view=opening] .landing-stage { display: none; }
   [data-view=opening] .viewer-stage { background: var(--viewer-bg); }
-  [data-view=opening] .image-frame { animation-delay: .1s; }
-  [data-view=opening] .viewer-controls { animation-delay: .25s; }
 }
-@media (prefers-reduced-motion: reduce) { [data-view] * { animation-duration: .01ms !important; animation-delay: 0s !important; transition-duration: .01ms !important; } }
-
-
-/* Personal introduction stays concise so the visualization remains the visual lead. */
-.landing-identity { display: flex; flex-direction: column; min-height: 0; height: 100%; }
-.landing-biography h1 { margin: 0 0 24px; font: 400 30px/1.1 var(--serif); letter-spacing: .025em; }
-.landing-biography { color: var(--muted); font-size: 12px; line-height: 1.7; }
-.landing-biography p { margin: 0; }
-.landing-actions { flex-shrink: 0; margin-top: 18px; padding-top: 22px; gap: 16px; }
-.landing-actions .open-portfolio { margin-bottom: 4px; }
-@media (max-width: 760px) {
-  .landing-biography h1 { margin-bottom: 16px; font-size: 29px; }
-  .landing-biography { font-size: 13px; line-height: 1.7; }
-}
-
-/* Interaction belongs to the aircraft canvas; touch scrolling remains available. */
-.scene-canvas canvas { pointer-events: auto; touch-action: pan-y; cursor: grab; outline: 1px solid #aeb3b855; outline-offset: -12px; }
-.scene-canvas canvas.is-dragging { cursor: grabbing; }
-.aircraft-drag-hint { position: absolute; right: var(--annotation-x,5.5%); bottom: 14%; color: #aeb3b899; font-size: 8px; letter-spacing: .16em; text-transform: uppercase; pointer-events: none; }
-[data-view=opening] .scene-canvas canvas { pointer-events: none; }
-
-/* Home is a complete editorial spread. The full-width footer belongs to the viewer. */
-[data-view=landing] .site-footer { display: none; }
-:root { --rail-padding-x: 30px; --rail-padding-y: 26px; --rail-gap: 20px; }
-[data-view=landing] .landing-rail, [data-view=landing] .landing-stage { min-height: 0; }
-.landing-rail { padding: var(--rail-padding-y) var(--rail-padding-x); overflow-y: auto; }
-.landing-identity { gap: 0; }
-.rail-kicker { display: flex; align-items: center; gap: 14px; margin-bottom: var(--rail-gap); color: #9da8af; font-size: 8px; letter-spacing: .22em; text-transform: uppercase; }
-.rail-kicker span { height: 1px; flex: 1; background: #66737c55; }
-.landing-biography h1 { margin-bottom: 16px; }
-.landing-biography { font-size: 11.5px; line-height: 1.65; }
-.rail-facts { margin: var(--rail-gap) 0 0; display: grid; gap: 14px; }
-.rail-facts dt { color: #c4c9cc; font-size: 8px; letter-spacing: .16em; text-transform: uppercase; }
-.rail-facts dd { margin: 5px 0 0; color: #929da5; font-size: 10px; line-height: 1.6; }
-.landing-actions { display: flex; flex-flow: row wrap; justify-content: space-between; gap: 16px 24px; margin-top: var(--rail-gap); padding-top: var(--rail-gap); }
-.landing-actions .open-portfolio { flex-basis: 100%; margin: 0; }
-.landing-actions > a:not(.open-portfolio), .rail-contact a { position: relative; padding-bottom: 5px; color: #aeb3b8; transition: color .2s; }
-.landing-actions > a:not(.open-portfolio)::after, .rail-contact a::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 1px; background: currentColor; transform: scaleX(0); transform-origin: left; transition: transform .2s; }
-.landing-actions > a:not(.open-portfolio):is(:hover,:focus-visible), .rail-contact a:is(:hover,:focus-visible) { color: #fff; }
-.landing-actions > a:not(.open-portfolio):is(:hover,:focus-visible)::after, .rail-contact a:is(:hover,:focus-visible)::after { transform: scaleX(1); }
-.rail-contact { margin-top: auto; padding-top: 28px; }
-.rail-contact nav { display: flex; gap: 25px; }
-.rail-contact a { font-size: 8px; letter-spacing: .15em; text-transform: uppercase; }
-.rail-contact p { margin: 12px 0 0; color: #67747d; font-size: 8px; letter-spacing: .12em; text-transform: uppercase; }
-@media (min-width: 761px) and (max-height: 800px) {
-  :root { --rail-padding-y: 18px; --rail-gap: 13px; }
-  .landing-biography { font-size: 11px; line-height: 1.55; }
-  .landing-biography h1 { font-size: 27px; margin-bottom: 12px; }
-  .rail-facts { gap: 10px; }
-  .rail-contact { padding-top: 18px; }
-}
-@media (max-width: 1050px) and (min-width: 761px) { :root { --rail-padding-x: 24px; } }
-@media (max-width: 760px) {
-  .landing-rail { overflow: visible; padding: 24px; }
-  .landing-identity { height: auto; }
-  .landing-biography { font-size: 13px; line-height: 1.7; }
-  .rail-facts { gap: 14px; }
-  .rail-facts dd { font-size: 11px; }
-  .landing-actions .open-portfolio { max-width: none; }
-  .rail-contact { margin-top: 24px; padding-top: 20px; border-top: 1px solid #66737c44; }
-  [data-view=landing] .landing-stage { min-height: 500px; }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .landing-actions a, .landing-actions a::after, .rail-contact a, .rail-contact a::after { transition: none !important; }
-  .scene-loading-line::after { animation: none; width: 100%; opacity: .55; }
+  [data-view] * { animation-duration: .01ms !important; animation-delay: 0s !important; transition-duration: .01ms !important; }
 }
 
+/* Existing document viewer geometry and controls. */
 .thumbnail-grid[hidden] { display: none; }
-
-/* A single stationary border belongs to the shell, never to either moving scene. */
 @media (min-width: 761px) {
-  .portfolio-layout::after {
+  [data-view=viewer] .portfolio-layout::after {
     content: ''; position: absolute; z-index: 4; pointer-events: none;
     top: 12px; left: calc(var(--sidebar-width) + 12px); right: 12px;
     height: calc(var(--shell-height) - 24px); border: 1px solid #aeb3b855;
   }
   [data-view] .portfolio-sidebar, [data-view] .landing-rail,
   [data-view] .landing-stage { min-height: 0; }
-  .scene-canvas canvas, [data-view=opening] .image-frame { outline: none; }
-  .viewer-stage {
-    height: var(--shell-height); min-height: 0; gap: 0; padding: 24px;
-  }
+  [data-view=opening] .image-frame { outline: none; }
+  .viewer-stage { height: var(--shell-height); min-height: 0; gap: 0; padding: 24px; }
   .image-frame {
     --page-max-height: calc(var(--shell-height) - 48px);
     width: min(100%, calc(var(--page-max-height) * var(--page-ratio)));
@@ -195,6 +201,4 @@
   .sidebar-controls button:focus-visible { outline: 1px solid var(--line-bright); outline-offset: -1px; background: #202429; color: #fff; }
   .sidebar-controls .page-jump-form { display: none; }
 }
-@media (max-width: 760px) {
-  .direction-label { display: none; }
-}
+@media (max-width: 760px) { .direction-label { display: none; } }
