@@ -215,7 +215,7 @@ Tune `TERRAIN_CONFIG` in `js/experience-config.js`: `heightScale`, `valleyScale`
 `contourOpacity`, `lineWidth`, and fog distances. `segments`/`lowSegments` control
 vertex cost. `LANDING_PALETTE` reads the scene's `--landing-bg` and
 `--landing-contour` CSS tokens; the viewer keeps its separate palette.
-`AIRCRAFT_CONFIG.surface`, `.edges`, and `.idle` control smoothness, highlights,
+`AIRCRAFT_CONFIG.surface`, `.edges`, and `.idle` control the paper fill,
 feature filtering, edge opacity, drift, yaw/pitch/bank, and cycle length.
 No additional runtime dependency, backend, image texture, or runtime CAD conversion
 was introduced. For initial visual tuning, adjust contour opacity and forward speed

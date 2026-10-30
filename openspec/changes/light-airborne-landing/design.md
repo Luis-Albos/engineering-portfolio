@@ -4,7 +4,7 @@
 
 See `proposal.md` and `specs/landing-composition/spec.md` for the outcome and behavior contract. The current site has one shared header and `.portfolio-layout` for the landing and 31-page viewer. `js/experience.js` controls the landing/viewer states, lazy-loads the 36 MB `reference/CP1_2024.glb`, and disposes the scene on entry to the viewer. `js/landing-scene.js` fits and renders that real aircraft with surface and edge materials. `js/contour-terrain.js` builds a periodic CPU heightfield once, then translates shared-geometry tiles; its shader already has contour antialiasing, fog, and world-edge fading. The present dark CSS and rolling terrain are visually different from DC-0008.
 
-The authoritative visual reference is `references/dc-0008-concept.png` (1586 × 992). DC-0007 restored the unboxed composition and both Resume placements; DC-0008 adds the airborne gap, mountain ridges, and fading contours. These owner decisions supersede the earlier framed-scene iterations. The image guides layout and lighting; the GLB determines the aircraft's actual geometry.
+The authoritative visual reference is `references/dc-0008-concept.png` (1586 × 992). DC-0007 restored the unboxed composition and both Resume placements; DC-0008 adds the airborne gap, mountain ridges, and fading contours. These owner decisions supersede the earlier framed-scene iterations. The image guides composition and visual hierarchy; the GLB determines the aircraft's actual geometry.
 
 ## Goals / Non-Goals
 
