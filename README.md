@@ -165,7 +165,7 @@ inactive while that viewer is inert on the landing.
 `reference/Dan Neuenhaus danneuenhaus Instagram reel.mp4` supplied motion guidance;
 the radar portion is intentionally excluded. The video is not embedded or fetched.
 The approved DC-0008 concept is stored at
-`openspec/changes/light-airborne-landing/references/dc-0008-concept.png` for visual
+`openspec/changes/archive/2026-10-30-light-airborne-landing/references/dc-0008-concept.png` for visual
 review; it is not served as the landing. The current aircraft is the SAE Aero Regular Class
 assembly in `reference/CP1_2024.glb`. Older Wyvern landing meshes, conversion tools,
 and image fallbacks were removed after the landing migrated to this aircraft.
