@@ -50,16 +50,13 @@ export async function createLandingScene(host, {signal, reducedMotion=false,buff
   renderer.setClearColor(0x000000,0);
   scene=new THREE.Scene();const group=new THREE.Group();scene.add(group);
   await yieldWork();
-  terrain=await createContourTerrain({lowDetail,yieldWork});scene.add(terrain.mesh);
+  terrain=await createContourTerrain({lowDetail,yieldWork,paletteElement:host});scene.add(terrain.mesh);
   await yieldWork();
-  scene.add(new THREE.HemisphereLight(0xffffff,0x30363c,config.lighting.fillIntensity));
-  const keyLight=new THREE.DirectionalLight(0xffffff,config.lighting.keyIntensity);keyLight.position.set(-4,8,6);scene.add(keyLight);
   group.position.set(config.position.x,config.position.y,config.position.z);
   group.rotation.set(config.rotation.x,config.rotation.y,config.rotation.z);
   group.scale.setScalar(config.scale);
-  const baseMaterial=new THREE.MeshStandardMaterial({color:new THREE.Color(config.surface.color).multiplyScalar(config.surface.brightness),roughness:config.surface.roughness,metalness:config.surface.metalness,side:THREE.DoubleSide,transparent:true,opacity:config.surface.opacity,polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:1});
-  // Suppress the dielectric specular lobe without changing the scene lighting.
-  baseMaterial.onBeforeCompile=shader=>{shader.fragmentShader=shader.fragmentShader.replace('#include <opaque_fragment>','outgoingLight *= '+config.surface.lightContribution.toFixed(4)+';\n#include <opaque_fragment>');};
+  const baseMaterial=new THREE.MeshBasicMaterial({color:config.surface.color,side:THREE.DoubleSide,
+    transparent:false,opacity:config.surface.opacity,polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:1});
   aircraft.traverse(node=>{if(node.isMesh){
     const materials=Array.isArray(node.material)?node.material:[node.material];
     materials.forEach(material=>{Object.values(material).forEach(value=>{if(value?.isTexture)value.dispose();});material.dispose();});
@@ -106,8 +103,15 @@ export async function createLandingScene(host, {signal, reducedMotion=false,buff
   const controls=createAircraftControls(canvas,{config:config.interaction,hitTest,onChange:requestRender,onExplore:hideHint,reducedMotion});
   function resize() {
     if(disposed) return;
-    const {width,height}=host.getBoundingClientRect();if(!width||!height)return;
-    renderer.setSize(width,height,false);terrain.resize(canvas.width,canvas.height,renderer.getPixelRatio());camera.aspect=width/height;
+    const bounds=host.getBoundingClientRect(),{width,height}=bounds;if(!width||!height)return;
+    // Fine interior truss lines need less ink when compressed to phone size.
+    edgeMaterial.uniforms.internalOpacity.value=width<=760?config.edges.internalOpacity*.55:config.edges.internalOpacity;
+    const copy=document.querySelector('.landing-intro')?.getBoundingClientRect();
+    const overlaps=copy && copy.bottom>bounds.top && copy.top<bounds.bottom;
+    const textBoundary=overlaps?THREE.MathUtils.clamp((copy.right-bounds.left)/width,0,.7):0;
+    renderer.setSize(width,height,false);
+    terrain.resize(canvas.width,canvas.height,renderer.getPixelRatio(),textBoundary);
+    camera.aspect=width/height;
     const target=new THREE.Vector3(...Object.values(config.camera.target));
     const direction=new THREE.Vector3(...Object.values(config.camera.position)).sub(target).normalize();
     camera.position.copy(direction);camera.lookAt(0,0,0);camera.updateMatrixWorld();

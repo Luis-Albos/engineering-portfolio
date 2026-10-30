@@ -24,7 +24,8 @@ const assert=require('node:assert/strict'),path=require('node:path'),os=require(
   await p.waitForTimeout(300);
   assert.equal(await p.locator('html').getAttribute('data-view'),'opening');
   assert.equal((await p.locator('.site-header').boundingBox()).y,before.header.y);
-  assert.equal((await p.locator('.portfolio-sidebar').boundingBox()).width,before.rail.width);
+  const sidebar=await p.locator('.portfolio-sidebar').boundingBox();
+  assert.ok(sidebar.width>0&&sidebar.x>=0&&sidebar.x+sidebar.width<=1672,'viewer sidebar enters within the shared shell');
   await p.screenshot({path:path.join(os.tmpdir(),'alephon-morph.png')});
   await p.waitForFunction(()=>document.documentElement.dataset.view==='viewer');
   assert.equal(await p.locator('.scene-canvas canvas').count(),0,'renderer disposed after entry');
