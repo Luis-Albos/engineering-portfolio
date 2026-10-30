@@ -1,0 +1,41 @@
+schema: spec-driven
+context: |
+  This is Luis Albos's static engineering portfolio, served from the
+  /engineering-portfolio/ GitHub Pages subpath. The site uses plain HTML,
+  CSS, JavaScript, vendored Three.js, a 31-page WebP viewer, a resume page,
+  and a Python-generated Study Archive. Follow README.md, AGENTS.md, and
+  STARTUP.md. Preserve relative runtime URLs and the existing published site
+  until a named overhaul change is approved. Record Design and Engineering
+  Council recommendations separately from owner decisions. The owner retains
+  product, aesthetic, integration, and release authority.
+
+# Project context (optional)
+# This is shown to AI when creating artifacts.
+# Add your tech stack, conventions, style guides, domain knowledge, etc.
+# Example:
+#   context: |
+#     Tech stack: TypeScript, React, Node.js
+#     We use conventional commits
+#     Domain: e-commerce platform
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always include a "Non-goals" section
+#     tasks:
+#       - Break tasks into chunks of max 2 hours
+
+# Per-operation guidance (optional)
+# Add advisory guidance for how apply and archive work should be conducted.
+# This is separate from artifact rules above.
+# Example:
+#   operations:
+#     apply:
+#       guidance:
+#         - Keep test summaries concise
+#     archive:
+#       guidance:
+#         - Summarize the archive outcome before finishing

@@ -1,0 +1,8 @@
+
+
+# Local Cortex connection and credentials
+/.cortex/
+/.codex/config.toml
+
+# Local JavaScript dependencies
+/node_modules/
