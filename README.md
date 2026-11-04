@@ -93,7 +93,7 @@ Optional class metadata can be added as `class.json` inside a class folder:
 
 `class.json` is completely optional. All fields inside it are optional too. Missing or malformed metadata is ignored without stopping the remaining archive build.
 
-No local build command is required for the GitHub Pages workflow. To preview newly added documents locally before pushing, run:
+No local build command is required for the normal push-to-deploy workflow. To preview newly added documents locally before pushing, run:
 
 ```bash
 python -m pip install -r requirements-study.txt
@@ -106,8 +106,7 @@ The archive lives at `resources/`. Its Request Access sequence stores a session 
 
 1. Commit all files and push the repository to GitHub.
 2. As a one-time repository setting, open **Settings → Pages** and choose **GitHub Actions** as the source. Branch-based Pages deployment does not run the Study Archive generator.
-3. Merge to `main` to run the build and Study Archive generator without changing the published site.
-4. When the release is approved, manually run **Build and deploy GitHub Pages** on the `main` branch from the Actions tab. This deploys the complete static site.
+3. Push to the `main` branch. `.github/workflows/pages.yml` generates the Study Archive and deploys the complete static site.
 
 GitHub will publish the site at `https://YOUR-USERNAME.github.io/REPOSITORY-NAME/`. All asset paths are relative, so the viewer works from a repository subpath without changes.
 
@@ -130,25 +129,28 @@ editorial composition; the viewer retains its own sidebar. Both states share
 the same navigation lifecycle without a duplicate viewer or frontend framework.
 
 - `js/experience.js`: shell state, entry/return, focus, history, and scene lifecycle.
-- `js/boot.js` + `css/boot.css`: the warm-ivory, accessible loading ring and its
-  single 15-second reveal ceiling. The original cinematic lives in the private
-  `Luis-Albos/alephon-load-animation` archive.
-- `js/asset-cache.js` + `service-worker.js`: versioned browser caching and a
-  low-priority queue for portfolio and Study Archive assets.
+- `js/boot.js` + `css/boot.css`: the cancellable Alephon cinematic. One animation-frame
+  clock selects explicit states; no nested timer chain. The dot logo is a small
+  CSS dot field masked by the real Alephon SVG; the resolved logo uses the same SVG.
+  Console text, fictional verification blocks, square loader, and green check are
+  HTML/CSS/SVG. This is a presentation, not authentication.
 - `js/landing-scene.js` + `css/landing.css`: Three.js CAD visualization and shared shell.
 - `js/experience-config.js`: all timeline timestamps, transition durations, camera,
   model transform, feature thresholds, opacity, framing, pixel ratio, and idle settings.
 
-The landing appears when the aircraft's first valid WebGL frame is ready, on a
-definitive scene failure, or after 15 seconds. A model still loading at the
-deadline continues in the landing viewport. Reduced motion keeps the ring and
-aircraft static. Each direct landing navigation checks readiness; there is no
-Skip control or session-only intro flag.
+The full timeline is **8,500 ms**, including 400 ms initial black, initialization,
+250 ms reset to black, brand/loading, automatic token population, green expansion,
+and a 650 ms check state followed by the 750 ms landing reveal. Skip cancels the
+clock and animations and reveals the landing; it never enters the portfolio.
+`sessionStorage.alephonIntroSeen` is set on completion or Skip. Returning during the
+same session reveals the landing in 450 ms. Reduced motion shows the solid logo
+for 220 ms and keeps the aircraft static. The superseded `portfolioIntroSeen` key
+is removed when the new intro finishes.
 
-`#page=10`, `#page=23`, and other viewer/section hashes bypass the loader and
+`#page=10`, `#page=23`, and other viewer/section hashes bypass the cinematic and
 landing immediately, before paint. They do not import Three.js or fetch the mesh.
 Portfolio links from Resume and Resources open the viewer; the homepage brand
-returns to the existing landing scene. Back/Forward follow the URL state.
+returns to the landing without replaying boot. Back/Forward follow the URL state.
 
 Opening Portfolio starts a **950 ms** in-place transformation: the editorial
 introduction fades, terrain and aircraft edges dim, and the actual portfolio
@@ -182,21 +184,10 @@ in a hidden tab rather than jumping ahead on return. Reduced motion freezes both
 terrain and aircraft. Rendering is capped at the configured 60 fps and 1.5 device pixel ratio.
 Coarse-pointer/low-core devices use a smaller terrain grid and DPR 1; sustained
 slow frame delivery also lowers DPR to 1. Entry fades terrain and edge layers,
-then pauses rendering and scene input while the portfolio is open. Returning Home
-resumes the same canvas, parsed model, and GPU resources. Page exit and
-unrecoverable context loss dispose geometry/materials, observers, renderer,
-context, and animation frame. Pending mesh loads are aborted on viewer entry;
-returning Home retries them through the versioned model cache.
+then disposes geometry/materials, observers, renderer, context, and animation frame.
+Pending mesh loads are aborted; returning home uses cached modules/assets.
 WebGL loss, unsupported WebGL, or failed Three.js/model loading preserves the
 lightweight viewport status and all accessible HTML controls.
-
-The preferred aircraft transfer is `reference/CP1_2024.glb.gz` (13.96 MB).
-The browser's `DecompressionStream('gzip')` expands it to the exact original
-36.11 MB GLB bytes before GLTFLoader parses them. Browsers without that API, or
-with a missing/corrupt compressed response, fetch the original GLB instead.
-`node scripts/check-model-gzip.cjs` verifies byte identity. The compressed
-response is the model entry persisted in the browser cache, reducing both cold
-transfer and cache storage without changing node names or geometry.
 
 To tune the view, edit `AIRCRAFT_CONFIG` in `js/experience-config.js`. Camera position
 sets the viewing direction; FOV controls perspective; the vertex-based fit preserves
@@ -207,16 +198,6 @@ surfaces; only geometry actually present is rendered.
 Deployment needs no Node/Python CAD processing and the existing Pages workflow is
 unchanged. All runtime URLs are relative or resolved relative to their ES module,
 including under `/engineering-portfolio/`.
-
-The service worker is scoped to this project subpath and stores versioned static
-assets as they are requested. After the landing becomes usable, a single-file
-background queue caches the 31 portfolio pages and thumbnails, Resume PDF,
-Study Archive manifest, thumbnails, and PDFs. A requested portfolio page pauses
-the queue; a later visit resumes missing assets. Cache Storage persists between
-browser sessions when the browser permits it, but browser quota or eviction can
-remove entries. A denied cache falls back to network requests. The new build
-marker changes cache keys, and `version.json` remains network-checked. PDF byte
-ranges bypass the worker so browser PDF viewers can request partial content.
 
 ### Contour terrain refinement
 
@@ -243,26 +224,18 @@ first; leave the shared-shell and camera settings alone unless reframing is desi
 ### Verification
 
 ```bash
-node scripts/sync-boot.cjs --check
-node scripts/check-model-gzip.cjs
-node scripts/test-cache-version.cjs
-node scripts/test-boot-reliability.cjs
-node scripts/test-scene-preload.cjs
-node scripts/test-functional-loader.cjs
 node scripts/test-experience.cjs
 node scripts/test-portfolio.cjs
 node scripts/test-landing-scene.cjs
-node scripts/test-aircraft-interaction.cjs
 ```
 
 The tests run local Chrome (viewer suite defaults to Edge; set `TEST_BROWSER=chrome`
-to use Chrome), serve the production project base path, and check readiness,
-the 15-second reveal, failure and fallback paths, browser-restart cache reuse,
-background asset recovery, PDF byte ranges, scene reuse, viewer navigation,
-responsive layout, reduced motion, and aircraft controls. The scene-specific
-suite checks motion progression and reduced-motion pixel stability. Screenshots
-go to the OS temp directory. The measured cold-transfer profile and results
-are recorded in `openspec/changes/archive/2026-11-03-functional-light-loader/performance.md`.
+to use Chrome), serve the production project base path, and check the full intro,
+every Skip stage, session/refresh, deep links, shell geometry, search, thumbnails,
+fullscreen, mobile/tablet, reduced motion, WebGL/library/model failure, GPU disposal,
+history, and delayed-image arrow/key spam. The scene-specific suite also checks motion
+progression, reduced-motion pixel stability, overlay removal, low-power DPR, and
+terrain/renderer disposal. Screenshots go to the OS temp directory.
 
 The original optional thumbnail directory was empty. Small WebP thumbnails are now
 included to avoid 31 failed image requests when opening the thumbnail panel.

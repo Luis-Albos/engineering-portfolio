@@ -22,8 +22,6 @@ jobs:
         uses: actions/checkout@v4
       - name: Verify embedded boot assets
         run: node scripts/sync-boot.cjs --check
-      - name: Verify compressed aircraft matches source
-        run: node scripts/check-model-gzip.cjs
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -42,7 +40,6 @@ jobs:
           path: .
 
   deploy:
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

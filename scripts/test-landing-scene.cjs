@@ -9,10 +9,9 @@ const os=require('node:os');
  try {
   const context=await browser.newContext({viewport:{width:1586,height:992}});
   await context.addInitScript(()=>sessionStorage.setItem('alephonIntroSeen','1'));
-  const p=await context.newPage(),errors=[],missing=[];
+  const p=await context.newPage(),errors=[];
   p.on('pageerror',error=>errors.push(error.message));
-  p.on('console',message=>{if(message.type()==='error'&&!message.text().includes('Failed to load resource: the server responded with a status of 404'))errors.push(message.text())});
-  p.on('response',response=>{if(response.status()===404)missing.push(response.url())});
+  p.on('console',message=>{if(message.type()==='error')errors.push(message.text())});
   await p.goto(base);
   await p.waitForSelector('.is-scene-ready canvas');
 
@@ -56,7 +55,7 @@ const os=require('node:os');
 
   await p.locator('.open-portfolio').click();
   await p.waitForFunction(()=>document.documentElement.dataset.view==='viewer');
-  assert.equal(await p.locator('.scene-canvas canvas').count(),1,'scene is retained after viewer entry');
+  assert.equal(await p.locator('.scene-canvas canvas').count(),0,'scene disposes after viewer entry');
   await p.locator('[data-home]').click();
   await p.waitForSelector('.is-scene-ready canvas');
   await p.emulateMedia({reducedMotion:'reduce'});
@@ -82,7 +81,6 @@ const os=require('node:os');
    await p.screenshot({path:path.join(os.tmpdir(),`light-airborne-${width}.png`)});
   }
   assert.deepEqual(errors,[]);
-  assert.ok(missing.every(url=>url.includes('/assets/study/')),'only optional stale Study manifest paths may be absent locally');
   await context.close();
 
   const fallback=await browser.newContext({viewport:{width:1586,height:992}});
