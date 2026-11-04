@@ -55,7 +55,7 @@ const os=require('node:os');
 
   await p.locator('.open-portfolio').click();
   await p.waitForFunction(()=>document.documentElement.dataset.view==='viewer');
-  assert.equal(await p.locator('.scene-canvas canvas').count(),0,'scene disposes after viewer entry');
+  assert.equal(await p.locator('.scene-canvas canvas').count(),1,'scene is retained after viewer entry');
   await p.locator('[data-home]').click();
   await p.waitForSelector('.is-scene-ready canvas');
   await p.emulateMedia({reducedMotion:'reduce'});

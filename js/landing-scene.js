@@ -197,6 +197,10 @@ export async function createLandingScene(host, {signal, reducedMotion=false,buff
     prepared=true;resize();wake();host.parentElement.classList.add('is-scene-ready');
   }
   catch(error){dispose();throw error;}
-  return {dispose,setActive(value){if(active===value)return;active=value;wake();},dismiss(){dismissAt=performance.now();controls.dismiss(dismissAt);hideHint();if(staticMotion)dismissAt-=500;wake();},setReduced(value){staticMotion=value;controls.setReduced(value);hideHint();wake();},snapshot(type='image/png'){render(performance.now());return canvas.toDataURL(type,.93);}};
+  return {dispose,setActive(value){if(active===value)return;active=value;controls.setActive(value);wake();},
+    resume(){if(disposed)return;dismissAt=null;active=true;controls.resume(performance.now());resize();wake();},
+    dismiss(){dismissAt=performance.now();controls.dismiss(dismissAt);hideHint();if(staticMotion)dismissAt-=500;wake();},
+    setReduced(value){staticMotion=value;controls.setReduced(value);hideHint();wake();},
+    snapshot(type='image/png'){render(performance.now());return canvas.toDataURL(type,.93);}};
   } catch(error){cleanup();throw error;}
 }
