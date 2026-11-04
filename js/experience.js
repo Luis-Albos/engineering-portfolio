@@ -32,7 +32,7 @@ function setSceneState(state){
   }
 }
 function maybePreloadAssets(){
-  if(root.dataset.boot!=='playing'&&root.dataset.view==='landing'&&['ready','unavailable'].includes(stage.dataset.scene))startAssetPreload();
+  if(root.dataset.boot!=='playing'&&root.dataset.view==='landing')startAssetPreload();
 }
 function startScene(){
   if(root.dataset.view!=='landing')return;
@@ -80,13 +80,13 @@ function startScene(){
 function closeMobileMenu(){
   document.querySelector('.drawer-close')?.click();
 }
-function finishBoot(){
+function finishBoot(event){
   bootOverlay.inert=true;
   for(const el of [header,shell,document.querySelector('#contact'),document.querySelector('.skip-link')])el.inert=false;
   setMode(root.dataset.view||'landing');
   boot=null;
   scene?.setActive(true);
-  maybePreloadAssets();
+  if(!['navigation','pagehide'].includes(event?.detail?.reason))maybePreloadAssets();
 }
 function openPortfolio({historyEntry=true,immediate=false,selectionFollows=false}={}){
   if(root.dataset.view==='opening'&&!immediate)return;

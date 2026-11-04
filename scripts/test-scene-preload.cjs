@@ -4,6 +4,8 @@ const assert=require('node:assert/strict');
  const {server,base}=await require('./browser-test-server.cjs')();const browser=await chromium.launch({channel:'chrome',headless:true});
  try{
   const late=await browser.newPage();await late.clock.install();let release;const gate=new Promise(resolve=>release=resolve);let requests=0;
+  let backgroundStarted;const backgroundRequest=new Promise(resolve=>backgroundStarted=resolve);
+  late.on('request',request=>{if(request.url().includes('study-manifest.json'))backgroundStarted();});
   await late.addInitScript(()=>{window.bootReasons=[];window.addEventListener('alephon:complete',e=>window.bootReasons.push(e.detail.reason));});
   await late.route('**/CP1_2024.glb*',async route=>{requests++;await gate;await route.continue().catch(()=>{});});
   await late.goto(base,{waitUntil:'domcontentloaded'});await late.waitForRequest('**/CP1_2024.glb*');
@@ -11,6 +13,7 @@ const assert=require('node:assert/strict');
   await late.waitForFunction(()=>!document.documentElement.dataset.boot);
   assert.deepEqual(await late.evaluate(()=>window.bootReasons),['timeout']);
   assert.ok(await late.locator('.open-portfolio').isVisible());
+  await Promise.race([backgroundRequest,new Promise((_,reject)=>setTimeout(()=>reject(new Error('Background preload did not start after timeout')),10000))]);
   release();await late.waitForFunction(()=>document.querySelector('.landing-stage').dataset.scene==='ready',null,{timeout:30000});
   assert.equal(requests,1);assert.deepEqual(await late.evaluate(()=>window.bootReasons),['timeout']);await late.close();
 

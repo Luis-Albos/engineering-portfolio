@@ -126,7 +126,7 @@ export async function createLandingScene(host, {signal, reducedMotion=false,buff
     camera.position.copy(target).addScaledVector(direction,distance);camera.lookAt(target);
     camera.updateMatrixWorld();cameraRight.setFromMatrixColumn(camera.matrixWorld,0);
     camera.setViewOffset(width,height,-width*config.framing.centerX,height*config.framing.centerY,width,height);
-    camera.updateProjectionMatrix();if(prepared)render(performance.now());
+    camera.updateProjectionMatrix();if(prepared&&active)render(performance.now());
   }
   function render(now) {
     const dt=active?Math.min(.1,Math.max(0,(now-animationStamp)/1000)):0;
@@ -194,7 +194,7 @@ export async function createLandingScene(host, {signal, reducedMotion=false,buff
   try {
     resize();await renderer.compileAsync(scene,camera);signal?.throwIfAborted();
     if(disposed)throw new Error('WebGL context lost during startup');
-    prepared=true;resize();wake();host.parentElement.classList.add('is-scene-ready');
+    prepared=true;resize();if(!active)render(performance.now());wake();host.parentElement.classList.add('is-scene-ready');
   }
   catch(error){dispose();throw error;}
   return {dispose,setActive(value){if(active===value)return;active=value;controls.setActive(value);wake();},

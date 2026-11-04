@@ -93,7 +93,7 @@ Optional class metadata can be added as `class.json` inside a class folder:
 
 `class.json` is completely optional. All fields inside it are optional too. Missing or malformed metadata is ignored without stopping the remaining archive build.
 
-No local build command is required for the normal push-to-deploy workflow. To preview newly added documents locally before pushing, run:
+No local build command is required for the GitHub Pages workflow. To preview newly added documents locally before pushing, run:
 
 ```bash
 python -m pip install -r requirements-study.txt
@@ -106,7 +106,8 @@ The archive lives at `resources/`. Its Request Access sequence stores a session 
 
 1. Commit all files and push the repository to GitHub.
 2. As a one-time repository setting, open **Settings → Pages** and choose **GitHub Actions** as the source. Branch-based Pages deployment does not run the Study Archive generator.
-3. Push to the `main` branch. `.github/workflows/pages.yml` generates the Study Archive and deploys the complete static site.
+3. Merge to `main` to run the build and Study Archive generator without changing the published site.
+4. When the release is approved, manually run **Build and deploy GitHub Pages** on the `main` branch from the Actions tab. This deploys the complete static site.
 
 GitHub will publish the site at `https://YOUR-USERNAME.github.io/REPOSITORY-NAME/`. All asset paths are relative, so the viewer works from a repository subpath without changes.
 
@@ -261,7 +262,7 @@ background asset recovery, PDF byte ranges, scene reuse, viewer navigation,
 responsive layout, reduced motion, and aircraft controls. The scene-specific
 suite checks motion progression and reduced-motion pixel stability. Screenshots
 go to the OS temp directory. The measured cold-transfer profile and results
-are recorded in `openspec/changes/functional-light-loader/performance.md`.
+are recorded in `openspec/changes/archive/2026-11-03-functional-light-loader/performance.md`.
 
 The original optional thumbnail directory was empty. Small WebP thumbnails are now
 included to avoid 31 failed image requests when opening the thumbnail panel.

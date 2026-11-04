@@ -14,7 +14,7 @@ export async function fetchModel(url,{signal}={}){
     let response=null;
     try{response=await cache?.match(candidate.href);}catch(_){/* Storage denial uses the network. */}
     if(!response){
-      response=await fetch(candidate.href,{signal});
+      response=await fetch(candidate.href,{signal,priority:'high'});
       if(!response.ok)throw new Error('Aircraft GLB unavailable');
       if(cache)void cache.put(candidate.href,response.clone()).catch(()=>{});
     }

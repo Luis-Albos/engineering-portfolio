@@ -24,7 +24,7 @@ Home resumes the same canvas, controls, and GPU resources. Page exit or an
 unrecoverable WebGL context loss disposes them. A pending scene is aborted when
 the visitor leaves Home for the viewer and can be retried on return.
 
-After the landing becomes usable and the scene is ready or unavailable,
+After the landing becomes usable, including at the 15-second ceiling,
 `js/asset-cache.js` registers a small, project-subpath-scoped service worker and
 starts a single-file background queue. It caches the 31 portfolio pages and
 thumbnails, Resume PDF, and the current Study Archive manifest's thumbnails

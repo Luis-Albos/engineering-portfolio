@@ -15,6 +15,11 @@ async function run(){
   page.on('pageerror',error=>errors.push(error.message));
   page.on('request',request=>{if(request.url().includes('CP1_2024.glb'))modelRequests.push(request.url())});
   await page.addInitScript(()=>{window.bootReasons=[];window.addEventListener('alephon:complete',e=>{window.bootReasons.push(e.detail.reason);window.revealAt=performance.now();});});
+  await page.route('**/js/landing-scene.js*',async route=>{
+   const response=await route.fetch();
+   const source=(await response.text()).replace('renderer.render(scene,camera);','renderer.render(scene,camera);window.__renderCount=(window.__renderCount||0)+1;');
+   await route.fulfill({response,body:source});
+  });
   await page.goto(base,{waitUntil:'domcontentloaded'});
   assert.equal(await page.locator('html').getAttribute('data-boot'),'playing');
   assert.equal((await page.locator('.boot-caption').textContent()).trim(),"loading luis' portfolio...");
@@ -31,11 +36,16 @@ async function run(){
   await page.locator('.open-portfolio').click();
   await page.waitForFunction(()=>document.documentElement.dataset.view==='viewer');
   assert.equal(await page.locator('.scene-canvas canvas').count(),1,'viewer retains canvas');
+  await page.waitForTimeout(100);
+  const pausedFrames=await page.evaluate(()=>window.__renderCount);
+  await page.setViewportSize({width:1510,height:900});await page.waitForTimeout(200);
+  assert.equal(await page.evaluate(()=>window.__renderCount),pausedFrames,'viewer resize does not render the paused scene');
   assert.equal(await page.locator('#portfolio-viewer').evaluate(el=>document.activeElement===el),true);
   await page.locator('.next-button').click();assert.equal(await page.locator('#page-input').inputValue(),'2');
   await page.locator('[data-home]').click();
   await page.waitForFunction(()=>document.documentElement.dataset.view==='landing');
   assert.ok(await page.evaluate(()=>window.firstCanvas===document.querySelector('.scene-canvas canvas')),'same canvas resumes');
+  assert.ok((await page.evaluate(()=>window.__renderCount))>pausedFrames,'rendering resumes on Home');
   assert.equal(modelRequests.length,1,'return makes no model request');
   const pdfs=await page.evaluate(async()=>{
    const manifest=await (await fetch('assets/study-manifest.json')).json();
