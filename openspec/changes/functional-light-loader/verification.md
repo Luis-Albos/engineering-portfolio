@@ -35,3 +35,11 @@ project-specific Cortex MCP was not exposed in this session; repository and
 README evidence were used directly. An actual managed corporate VPN and the
 production Pages CDN were not tested. Paired local throttle timings are in
 `performance.md`.
+
+Portfolio implementation commit: `7b9bcda26def54b925d867e9fe6a7afad5b9f52b`,
+based on published `main` commit
+`0a1f47af44a725d90557c8e23b3d24ae06eec471`. Draft PR:
+`https://github.com/Luis-Albos/engineering-portfolio/pull/3`. The PR's remote
+file list includes all 37 intended files, including DC-0010, the private
+archive commit reference, gzip artifact, cache code, tests, and OpenSpec.
+No merge or Pages deployment was performed.

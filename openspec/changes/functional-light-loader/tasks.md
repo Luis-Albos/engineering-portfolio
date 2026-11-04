@@ -30,4 +30,4 @@
 ## 6. Integrate and hand off
 
 - [x] 6.1 Run the affected integrated site suites and a real browser journey covering cold load, warm browser restart, Portfolio-to-Home return, deep link, model failure, and PDF access under the static project subpath; record revision, elapsed check times, and any untested corporate-VPN condition.
-- [ ] 6.2 Reconcile the approved concept/ledger work and both repositories' commit identities, prepare a draft portfolio PR without merging or deploying, and verify that its head includes the archived-intro dependency and all in-scope files.
+- [x] 6.2 Reconcile the approved concept/ledger work and both repositories' commit identities, prepare a draft portfolio PR without merging or deploying, and verify that its head includes the archived-intro dependency and all in-scope files.
