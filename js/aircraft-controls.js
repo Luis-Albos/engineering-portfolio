@@ -3,7 +3,7 @@ export function createAircraftControls(canvas, {config, hitTest, onChange, onExp
   let mode='idle',yaw=0,pitch=0,pointer=null,lastX=0,lastY=0;
   let targetYaw=0,targetPitch=0,yawVelocity=0,pitchVelocity=0,lastUpdate=performance.now();
   let releaseAt=0,returnAt=0,returnDuration=0,fromYaw=0,fromPitch=0,fromWeight=1;
-  let idleWeight=1,dismissing=false,disposed=false,reduced=reducedMotion;
+  let idleWeight=1,dismissing=false,disposed=false,enabled=true,reduced=reducedMotion;
   const clamp=(value,limit)=>Math.max(-limit,Math.min(limit,value));
   const smooth=t=>t*t*(3-2*t);
   function startReturn(now,duration) {
@@ -43,7 +43,7 @@ export function createAircraftControls(canvas, {config, hitTest, onChange, onExp
     if(id!==null && canvas.hasPointerCapture(id))canvas.releasePointerCapture(id);
   }
   function down(event) {
-    if(disposed||dismissing||pointer!==null||!event.isPrimary||event.button!==0||!hitTest(event))return;
+    if(disposed||!enabled||dismissing||pointer!==null||!event.isPrimary||event.button!==0||!hitTest(event))return;
     update(performance.now());
     pointer=event.pointerId;lastX=event.clientX;lastY=event.clientY;targetYaw=yaw;targetPitch=pitch;mode='dragging';
     canvas.setPointerCapture(pointer);canvas.classList.add('is-dragging');
@@ -64,7 +64,7 @@ export function createAircraftControls(canvas, {config, hitTest, onChange, onExp
     targetPitch=clamp(targetPitch+pitchVelocity*config.releaseMomentum,config.maxTilt);onChange();
   }
   function key(event) {
-    if(dismissing || !['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Escape','Home'].includes(event.key))return;
+    if(!enabled||dismissing || !['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Escape','Home'].includes(event.key))return;
     event.preventDefault();update(performance.now());onExplore();
     if(event.key==='Home'||event.key==='Escape')startReturn(performance.now(),config.returnDuration);
     else {
@@ -82,6 +82,9 @@ export function createAircraftControls(canvas, {config, hitTest, onChange, onExp
   window.addEventListener('blur',release);document.addEventListener('visibilitychange',visibility);
   return {update,
     dismiss(now){update(now);dismissing=true;releaseCapture();startReturn(now,config.dismissReturnDuration);},
+    resume(now){dismissing=false;enabled=true;releaseCapture();yaw=0;pitch=0;targetYaw=0;targetPitch=0;
+      yawVelocity=0;pitchVelocity=0;idleWeight=1;mode='idle';lastUpdate=now;},
+    setActive(value){enabled=value;if(!value)releaseCapture();},
     setReduced(value){reduced=value;},
     dispose(){disposed=true;releaseCapture();canvas.removeEventListener('pointerdown',down);canvas.removeEventListener('pointermove',move);
       for(const type of ['pointerup','pointercancel','lostpointercapture'])canvas.removeEventListener(type,release);
