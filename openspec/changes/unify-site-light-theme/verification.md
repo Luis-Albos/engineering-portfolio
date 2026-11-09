@@ -35,6 +35,7 @@ The checked-in generated Study Archive manifest predates the current document se
 
 ## Artifact and Review Surface
 
+- Verified runtime revision: `dc75c7a7f0641536a7bf2a91d9197d83404976a4`. Subsequent receipt/task edits change documentation only; the artifact's runtime inputs match that revision.
 - **Open:** `http://127.0.0.1:49283/engineering-portfolio/` (retained local built-artifact server).
 - Canonical source checkout is recorded above; built static output: `C:/Users/Letzel/AppData/Local/Temp/portfolio-light-theme-bdlikaa9/engineering-portfolio`.
 - Artifact: 152 files, 245,109,132 bytes. Identity manifest: `C:/Users/Letzel/AppData/Local/Temp/portfolio-light-theme-bdlikaa9/SHA256SUMS.txt`.
@@ -49,4 +50,6 @@ The focused reasoning in `design.md` adopted the existing homepage palette and d
 
 ## Remaining Gates
 
-Implementation and acceptance are complete. Prepare the reviewable commits and draft PR; record its exact head and this artifact's matching runtime revision in the PR body and delivery card. Owner visual acceptance, Plating integration/spec reconciliation, and public release remain outstanding. Carry the existing Pages embedded-boot check, compressed-model check, and Study Archive generation into release verification.
+Implementation and acceptance are complete. Draft PR [#5](https://github.com/Luis-Albos/engineering-portfolio/pull/5) targets `main` from `codex/unify-site-light-theme` and is attached to this chat. The PR body and live PR metadata record its exact final head; runtime evidence covers the verified revision above. Pre-existing `.playwright-mcp/` remains untracked and excluded.
+
+Owner visual acceptance, Plating integration/spec reconciliation, and public release remain outstanding. No merge or deployment was performed. Carry the existing Pages embedded-boot check, compressed-model check, and Study Archive generation into release verification.
