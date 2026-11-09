@@ -73,6 +73,14 @@ The normal upload workflow requires no HTML, JavaScript, manifest, or thumbnail 
 
 The GitHub Pages workflow then runs `scripts/build_study_archive.py`, detects every PDF, counts its pages, records its file size, creates a first-page WebP thumbnail under `assets/study-thumbnails/`, regenerates `assets/study-manifest.json`, and deploys those generated files with the site.
 
+The workflow stages public files with `python scripts/prepare_site.py --output _site`
+and uploads `_site`, keeping Node dependencies, tests, proposals, Git metadata,
+and source CAD/video references out of the published artifact. The output must
+be a new or empty directory. `_artifact.json` records the build and each public
+file's SHA-256 identity. For a local prepared preview, generate the archive,
+stage to an empty directory, and serve its parent with that directory named
+`engineering-portfolio` to exercise the production subpath.
+
 Every immediate folder is treated as a class, and every PDF directly inside it becomes a resource. Class names come from folder names; document titles come from PDF filenames. Natural sorting keeps names such as Exam 1, Exam 2, and Exam 10 in the expected order.
 
 `.gitkeep` is not required when a folder contains real files. Its only purpose is to preserve an otherwise-empty folder in Git. It is ignored by the generator.
@@ -112,20 +120,42 @@ GitHub will publish the site at `https://YOUR-USERNAME.github.io/REPOSITORY-NAME
 
 ## Viewer controls
 
-- Previous/next buttons or left/right arrow keys
-- Chapter navigation in the desktop sidebar or mobile drawer
+- Previous/next buttons or left/right arrow keys: one page in Single, the adjacent spread in Double
+- Chapters, search, and thumbnails in the compact Chapters dialog; phone site navigation remains in the menu
 - Direct page entry in the page-number field
-- Swipe left/right on touch devices
+- Drag a sheet edge or swipe horizontally to turn; a partial drag can return to the same sheet; vertical phone scrolling remains available
 - Deep links using one-based hashes such as `#page=15`
 - Lazy thumbnail loading and adjacent-page preloading
-- Fullscreen and chapter/page search
+- Auto / Single / Double controls: Auto uses two sheets only when each fitted sheet can be at least 680 CSS pixels wide, accounting for available height as well as width
+- Manual mode selection survives resizing and Home/Portfolio returns in the current document; reload starts in Auto
+- Page 1 is a centered soft cover; facing spreads are 2–3, 4–5, through 30–31; switching modes preserves the exact selected page
+- Zoom opens the selected original sheet in a detail dialog with Fit, plus/minus enlargement up to 8×, scrolling, Escape/Close and focus return
+- Fullscreen and chapter/page search; reduced motion uses immediate page changes without animated folding
+
+The viewer retains up to seven nearby decoded images in Single and six in Double
+(plus transient in-flight work or the last displayed sheet during a failure).
+Its renderer mounts at most three Single sheets or six Double sheets and releases
+distant sheet nodes. The existing low-priority cache may still fetch all compressed
+assets after the landing is usable; that is separate from decoded image memory.
+A requested spread holds foreground priority until both sheets settle. Failed
+pages leave readable content visible with an explicit status and Retry. If the
+page-turn module fails, fitted sheets and the same navigation/mode controls remain
+usable without animated folds.
+
+The pinned MIT `page-flip@2.0.7` engine is self-hosted under
+`assets/vendor/page-flip/`, with an unchanged bundle and license. The small
+`js/page-turn-renderer.js` adapter controls forced modes, a rolling sheet window,
+soft-sheet treatment, input arbitration and request-driven drawing; it stops
+idle/hidden drawing and explicitly cleans up resize/input handlers. See that
+vendor directory's README for source identity and version-specific integration.
+Motion remains installed but is not required by this viewer at runtime.
 
 
 ## Landing / Intro System
 
 The homepage uses one `.portfolio-layout` and one header for the landing and
 existing portfolio viewer. Landing content and the scene overlap as an open
-editorial composition; the viewer retains its own sidebar. Both states share
+editorial composition; the viewer uses a wider stage and compact Chapters/tools dialogs. Both states share
 the same navigation lifecycle without a duplicate viewer or frontend framework.
 
 - `js/experience.js`: shell state, entry/return, focus, history, and scene lifecycle.
@@ -256,6 +286,9 @@ node scripts/test-scene-preload.cjs
 node scripts/test-functional-loader.cjs
 node scripts/test-experience.cjs
 node scripts/test-portfolio.cjs
+node scripts/test-viewer-layout.cjs
+node scripts/test-renderer-slice.cjs
+node scripts/test-page-turn-continuity.cjs
 node scripts/test-landing-scene.cjs
 node scripts/test-aircraft-interaction.cjs
 ```
@@ -285,5 +318,7 @@ featured-project annotation appears. On narrow screens, the copy and action stay
 ahead of the scene in reading order. The aircraft is the real
 `reference/CP1_2024.glb`, raised over the mountain field with a paper-colored fill
 and dark sketch lines.
-The viewer, Resume, and Resources share the landing's light palette while
-retaining their existing layouts and behavior. Flipbook planning remains separate.
+The viewer, Resume, and Resources share the landing's light palette. Resume and
+Resources retain their existing layouts and behavior. The Portfolio viewer uses
+the thin-sheet flipbook described in Viewer controls, with responsive
+Auto/Single/Double viewing.

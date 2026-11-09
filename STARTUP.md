@@ -5,7 +5,7 @@ Edit `js/boot.js` and `css/boot.css`, then run `node scripts/sync-boot.cjs`.
 The Pages workflow runs `node scripts/sync-boot.cjs --check`. Keep the build
 marker and asset queries in `index.html`, `resume.html`, and
 `resources/index.html`, and `resources/viewer.html` aligned with `version.json` (current build:
-`20261109-02`). The early `version.json` check uses `cache: "no-store"` and
+`20261109-04`). The early `version.json` check uses `cache: "no-store"` and
 the service worker leaves that request on the network.
 
 For a direct landing visit, the ring paints before `js/experience.js` imports

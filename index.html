@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-build="20261109-02">
+<html lang="en" data-build="20261109-04">
   <head>
     <meta charset="utf-8">
     <meta name="color-scheme" content="light">
@@ -39,10 +39,11 @@
     <meta name="twitter:title" content="Luis Albos — Engineering Portfolio">
     <meta name="twitter:description" content="A 31-page aerospace and mechatronics engineering portfolio by Luis Albos.">
     <title>Luis Albos — Engineering Portfolio</title>
-    <link rel="icon" href="assets/landing/alephon.svg?v=20261109-02" type="image/svg+xml">
-    <link rel="stylesheet" href="styles.css?v=20261109-02" media="print" onload="this.media='all'">
-    <link rel="stylesheet" href="css/landing.css?v=20261109-02" media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="styles.css?v=20261109-02"><link rel="stylesheet" href="css/landing.css?v=20261109-02"></noscript>
+    <link rel="icon" href="assets/landing/alephon.svg?v=20261109-04" type="image/svg+xml">
+    <link rel="stylesheet" href="styles.css?v=20261109-04" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="css/landing.css?v=20261109-04" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="css/portfolio-viewer.css?v=20261109-04" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="styles.css?v=20261109-04"><link rel="stylesheet" href="css/landing.css?v=20261109-04"><link rel="stylesheet" href="css/portfolio-viewer.css?v=20261109-04"></noscript>
     <!-- boot-style:start --><style>/* Small, self-contained first-paint loader. Kept inline by sync-boot.cjs. */
 .boot-cinematic { display: none; position: fixed; z-index: 2000; inset: 0; background: #fefdfa; color: #303237; }
 [data-boot=playing] .boot-cinematic { display: grid; place-items: center; }
@@ -60,10 +61,10 @@
         if (!deep) document.documentElement.dataset.boot = 'playing';
       })();
     </script>
-    <script type="module" src="js/experience.js?v=20261109-02"></script>
-    <script src="site-config.js?v=20261109-02" defer></script>
-    <script src="page-transitions.js?v=20261109-02" defer></script>
-    <script src="script.js?v=20261109-02" defer></script>
+    <script type="module" src="js/experience.js?v=20261109-04"></script>
+    <script src="site-config.js?v=20261109-04" defer></script>
+    <script src="page-transitions.js?v=20261109-04" defer></script>
+    <script src="script.js?v=20261109-04" defer></script>
   </head>
   <body class="page-enter">
     <a class="skip-link" href="#portfolio-viewer">Skip to portfolio viewer</a>
@@ -141,61 +142,50 @@
         </div>
       </section>
 
-      <aside class="portfolio-sidebar" id="desktop-sidebar" aria-label="Luis Albos portfolio navigation">
-        <div class="sidebar-heading">
-          <p class="eyebrow">Portfolio</p>
-          <p class="sidebar-page-count" aria-live="polite">
-            <span class="current-page-display">01</span><span class="count-divider">/</span><span class="total-pages-display">31</span>
-          </p>
-          <div class="progress-track" aria-hidden="true"><span class="progress-bar"></span></div>
-        </div>
-
-        <div class="sidebar-tools" aria-label="Viewer tools">
-          <button class="tool-button thumbnails-button" type="button" aria-label="Show page thumbnails" aria-expanded="false">
-            <span class="grid-icon" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-          </button>
-          <span class="tool-separator" aria-hidden="true"></span>
-          <button class="tool-button search-button" type="button" aria-label="Search chapters and pages">
-            <span class="search-icon" aria-hidden="true"></span>
-          </button>
-          <button class="tool-button fullscreen-button" type="button" aria-label="Enter fullscreen">
-            <span class="fullscreen-icon" aria-hidden="true"></span>
-          </button>
-        </div>
-
-        <div class="sidebar-scroll">
-          <nav class="chapter-nav" aria-label="Portfolio chapters"></nav>
-          <section class="thumbnail-grid" aria-label="Page thumbnails" hidden></section>
-        </div>
-
-        <div class="viewer-controls sidebar-controls">
-          <div class="direction-controls" aria-label="Page navigation">
-            <button class="previous-button" type="button" aria-label="Previous page"><span aria-hidden="true">←</span><span class="direction-label">Previous</span></button>
-            <button class="next-button" type="button" aria-label="Next page"><span aria-hidden="true">→</span><span class="direction-label">Next</span></button>
-          </div>
-
-          <form class="page-jump-form" aria-label="Jump to page">
-            <label class="visually-hidden" for="page-input">Page number</label>
-            <input id="page-input" type="number" inputmode="numeric" min="1" value="1" aria-label="Current page">
-            <span aria-hidden="true">/</span>
-            <span class="total-pages-display">31</span>
-          </form>
-        </div>
-      </aside>
-
       <main class="viewer-main" id="portfolio-viewer" tabindex="-1">
-        <section class="viewer-stage" aria-label="Luis Albos Engineering Portfolio page viewer" aria-roledescription="image gallery">
-          <div class="image-frame" id="image-frame" aria-live="polite">
-            <div class="loading-indicator" role="status">Loading page</div>
-            <img class="portfolio-page-image" id="portfolio-page" alt="" draggable="false">
-            <img class="portfolio-page-image" id="portfolio-page-next" alt="" draggable="false">
-            <div class="page-fallback" id="page-fallback" role="status" hidden>
-              <span>Page <span class="fallback-page-number">01</span> could not load.</span>
-              <button id="retry-page" type="button">Retry</button>
+        <section class="viewer-stage" aria-label="Luis Albos Engineering Portfolio">
+          <div class="viewer-toolbar">
+            <button class="chapters-button" type="button" aria-haspopup="dialog" aria-controls="chapters-dialog">☷ <span>Chapters</span></button>
+            <p class="mode-caption" id="mode-caption">Single-page view</p>
+            <div class="view-modes" role="group" aria-label="Page viewing mode">
+              <button type="button" data-view-mode="auto" aria-pressed="true">Auto</button>
+              <button type="button" data-view-mode="single" aria-pressed="false">Single</button>
+              <button type="button" data-view-mode="double" aria-pressed="false">Double</button>
             </div>
+          </div>
+          <div class="sheet-space">
+            <div class="image-frame" id="image-frame">
+              <div class="page-turn-surface" aria-hidden="true"></div>
+            </div>
+            <div class="sheet-descriptions visually-hidden"></div>
+          </div>
+          <div class="viewer-controls">
+            <div class="direction-controls" aria-label="Page navigation">
+              <button class="previous-button" type="button" aria-label="Previous page or spread">←</button>
+              <span class="visible-page-range" aria-label="Displayed pages">01 / 31</span>
+              <button class="next-button" type="button" aria-label="Next page or spread">→</button>
+            </div>
+            <form class="page-jump-form" aria-label="Jump to page">
+              <label for="page-input">Page</label>
+              <input id="page-input" type="number" inputmode="numeric" min="1" max="31" value="1" aria-label="Selected page">
+            </form>
+            <div class="viewer-reading-tools">
+              <button class="detail-button" type="button" aria-label="Enlarge selected page" aria-haspopup="dialog">⌕ <span>Zoom</span></button>
+              <button class="fullscreen-button" type="button" aria-label="Enter fullscreen">⛶</button>
+            </div>
+          </div>
+          <div class="progress-track" aria-hidden="true"><span class="progress-bar"></span></div>
+          <div class="viewer-feedback">
+            <p id="viewer-status" role="status" aria-live="polite" aria-atomic="true"></p>
+            <button id="retry-page" type="button" hidden>Retry</button>
           </div>
         </section>
       </main>
+      <dialog class="portfolio-sidebar chapters-dialog" id="chapters-dialog" aria-labelledby="chapters-title">
+        <div class="chapters-heading"><h2 id="chapters-title">Portfolio chapters</h2><button class="chapters-close" type="button" aria-label="Close chapters">×</button></div>
+        <div class="sidebar-tools"><button class="search-button" type="button">Search</button><button class="thumbnails-button" type="button" aria-expanded="false">Thumbnails</button></div>
+        <div class="sidebar-scroll"><nav class="chapter-nav" aria-label="Portfolio chapters"></nav><section class="thumbnail-grid" aria-label="Page thumbnails" hidden></section></div>
+      </dialog>
     </div>
 
     <footer class="site-footer" id="contact">
@@ -230,6 +220,10 @@
       </div>
     </aside>
 
+    <dialog class="detail-dialog" id="detail-dialog" aria-labelledby="detail-title">
+      <div class="detail-toolbar"><h2 id="detail-title">Page detail</h2><div><button type="button" id="detail-out" aria-label="Zoom out">−</button><button type="button" id="detail-reset">Fit</button><button type="button" id="detail-in" aria-label="Zoom in">+</button><button type="button" id="detail-close" aria-label="Close page detail">×</button></div></div>
+      <div class="detail-canvas" tabindex="0" aria-label="Enlarged page; scroll to inspect"><img class="detail-image" alt=""></div>
+    </dialog>
     <dialog class="search-dialog" id="search-dialog" aria-labelledby="search-title">
       <form method="dialog" class="search-dialog-inner">
         <div class="search-dialog-header">

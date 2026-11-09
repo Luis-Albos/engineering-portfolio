@@ -1,0 +1,91 @@
+{
+  "result": "PASS",
+  "date": "2026-11-09",
+  "browser": "Chrome 156.0.8078.80 Windows headless",
+  "identity": {
+    "artifact": "C:/Users/Letzel/AppData/Local/Temp/portfolio-flipbook-build-20261109-04/engineering-portfolio",
+    "base": "http://127.0.0.1:8767/engineering-portfolio/",
+    "build": "20261109-04",
+    "sha256": "75c8ddda20674b473e7666b0abedb6d92aae0b5ae6f150d164d6bbadd7e4c94a",
+    "files": 147,
+    "mismatches": []
+  },
+  "positiveControl": {
+    "mutation": "Only synchronous createEngine draw removed through isolated browser response override",
+    "compositorFrames": 254,
+    "blankCompositorFrames": 2,
+    "domSamples": 1139,
+    "domGaps": 7,
+    "durationMs": 10751
+  },
+  "artifactRuns": [
+    {
+      "name": "fixed-solid",
+      "compositorFrames": 253,
+      "blankCompositorFrames": 0,
+      "domSamples": 1131,
+      "domGaps": 0,
+      "pageErrors": 0,
+      "minPixelCoverageFraction": 0.6783625730994152,
+      "durationMs": 10426
+    },
+    {
+      "name": "fixed-artwork-desktop",
+      "compositorFrames": 249,
+      "blankCompositorFrames": 0,
+      "domSamples": 1130,
+      "domGaps": 0,
+      "pageErrors": 0,
+      "minPixelCoverageFraction": 0.18404907975460122,
+      "durationMs": 11425
+    },
+    {
+      "name": "fixed-artwork-mobile",
+      "compositorFrames": 147,
+      "blankCompositorFrames": 0,
+      "domSamples": 809,
+      "domGaps": 0,
+      "pageErrors": 0,
+      "minPixelCoverageFraction": 0.10743801652892562,
+      "durationMs": 5047
+    },
+    {
+      "name": "fixed-solid-delayed-decode",
+      "compositorFrames": 254,
+      "blankCompositorFrames": 0,
+      "domSamples": 1237,
+      "domGaps": 0,
+      "pageErrors": 0,
+      "minPixelCoverageFraction": 0.6783625730994152,
+      "durationMs": 10810
+    }
+  ],
+  "totals": {
+    "compositorFrames": 903,
+    "blankCompositorFrames": 0,
+    "domSamples": 4307,
+    "domGaps": 0,
+    "pageErrors": 0
+  },
+  "decodeDelayMs": [
+    450.3
+  ],
+  "scenarios": [
+    "Single and Double button forward/backward",
+    "Mode changes",
+    "Rapid direction reversal followed by page23 jump",
+    "Delayed page23 request plus explicit delayed image.decode",
+    "Real artwork native mobile Single/Double drag completion forward/backward"
+  ],
+  "evidence": {
+    "blankControl": "positive-control-blank.png",
+    "fixedFixture": "fixed-settled.png",
+    "fixedArtwork": "fixed-artwork-settled.png"
+  },
+  "limits": [
+    "CDP screencast is compositor output, not a guarantee that every physical display refresh was captured.",
+    "Headless Chrome only; physical hidden-tab throttling and other devices/browsers were not observed.",
+    "Focused transition regression; earlier full route checks were not repeated."
+  ],
+  "repositoryAndArtifactReadOnly": true
+}

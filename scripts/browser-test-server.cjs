@@ -1,7 +1,8 @@
 // Development-only static server shared by browser checks.
 const http=require('node:http'),fs=require('node:fs'),path=require('node:path');
-const root=path.resolve(__dirname,'..');
-module.exports=()=>new Promise(resolve=>{
+const projectRoot=path.resolve(__dirname,'..');
+module.exports=(rootDir=projectRoot,port=0)=>new Promise(resolve=>{
+  const root=path.resolve(rootDir);
   const server=http.createServer((req,res)=>{
     let file=decodeURIComponent(new URL(req.url,'http://localhost').pathname);
     if(!file.startsWith('/engineering-portfolio/')){res.writeHead(404).end();return;}
@@ -19,5 +20,5 @@ module.exports=()=>new Promise(resolve=>{
       res.end(data);
     });
   });
-  server.listen(0,'127.0.0.1',()=>resolve({server,base:`http://127.0.0.1:${server.address().port}/engineering-portfolio/`}));
+  server.listen(port,'127.0.0.1',()=>resolve({server,base:`http://127.0.0.1:${server.address().port}/engineering-portfolio/`}));
 });
