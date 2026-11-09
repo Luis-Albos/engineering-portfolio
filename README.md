@@ -288,6 +288,7 @@ node scripts/test-experience.cjs
 node scripts/test-portfolio.cjs
 node scripts/test-viewer-layout.cjs
 node scripts/test-renderer-slice.cjs
+node scripts/test-page-turn-continuity.cjs
 node scripts/test-landing-scene.cjs
 node scripts/test-aircraft-interaction.cjs
 ```

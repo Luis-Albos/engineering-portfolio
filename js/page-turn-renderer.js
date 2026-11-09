@@ -136,6 +136,8 @@ export function createPageTurnRenderer({ container, totalPages, onTurn, canTurn,
     synchronizing++;
     try { instance.turnToPage(numbers.indexOf(page)); }
     finally { synchronizing--; }
+    render.drawFrame();
+    container.dataset.draws = String(++draws);
     container.dataset.activeSheets = String(numbers.length);
     container.dataset.turnState = 'read';
     wake();

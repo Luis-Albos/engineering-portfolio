@@ -82,7 +82,7 @@ const server = http.createServer((req, res) => {
         for(let step=1;step<=12;step++) await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:box.x+box.width-12-(box.width-24)*step/12,y:box.y+box.height*.85}]});
         await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
         await cdp.detach();
-        await requested(7); await visible(7);
+        await visible(7); await requested(7);
         assert.equal(await page.locator('#about').count(),0); assert.equal(await page.locator('#contact .email-link').count(),1);
         await page.screenshot({path:path.join(os.tmpdir(),'portfolio-mobile.png')});
       }
