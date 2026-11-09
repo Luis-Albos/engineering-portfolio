@@ -36,15 +36,15 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),path
  await page.mouse.move(momentumGrab[0]+60,momentumGrab[1],{steps:4});await page.mouse.up();
  const releasedYaw=(await read()).interaction.yaw;await page.waitForTimeout(180);const coastYaw=(await read()).interaction.yaw;
  assert.ok(coastYaw>releasedYaw+.01,'aircraft retains motion after release');
- await page.waitForTimeout(500);const settledYaw=(await read()).interaction.yaw;await page.waitForTimeout(350);
- assert.ok(Math.abs((await read()).interaction.yaw-settledYaw)<Math.abs(coastYaw-releasedYaw)*.2,'momentum decelerates into a settled pose');
+ await page.waitForTimeout(500);const returningYaw=(await read()).interaction.yaw;await page.waitForTimeout(1000);
+ assert.ok(Math.abs((await read()).interaction.yaw)<Math.abs(returningYaw),'timed return brings the aircraft back toward idle');
  await page.waitForFunction(()=>heroProbe.interaction.yaw===0&&!heroProbe.interaction.active,{},{timeout:5000});
  const grab=(await read()).grab;await page.mouse.move(...grab);await page.mouse.down();await page.mouse.move(grab[0]-200,grab[1]-150,{steps:8});
  assert.ok((await read()).interaction.yaw>=-config.interaction.maxYaw);assert.ok((await read()).interaction.pitch>=-config.interaction.maxTilt);
  await page.locator('canvas').dispatchEvent('pointercancel',{pointerId:1});assert.equal(await page.locator('.is-dragging').count(),0);await page.mouse.up();
  await page.locator('.open-portfolio').click();await page.waitForTimeout(300);
  const closing=await read();assert.equal(closing.interaction.yaw,0);assert.equal(closing.interaction.pitch,0);assert.equal(closing.interaction.idleWeight,0,'known pose before dismissal');
- await page.waitForFunction(()=>document.documentElement.dataset.view==='viewer');assert.equal(await page.locator('.scene-canvas canvas').count(),0);
+ await page.waitForFunction(()=>document.documentElement.dataset.view==='viewer');assert.equal(await page.locator('.scene-canvas canvas').count(),1);
  await page.locator('[data-home]').click();await page.waitForSelector('.is-scene-ready canvas');
  assert.equal(await page.locator('.aircraft-drag-hint:not([hidden])').count(),0,'hint is one-time per session');
  await page.emulateMedia({reducedMotion:'reduce'});await page.waitForTimeout(100);
