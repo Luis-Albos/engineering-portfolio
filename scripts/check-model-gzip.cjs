@@ -1,0 +1,11 @@
+const fs=require('node:fs');
+const path=require('node:path');
+const crypto=require('node:crypto');
+const zlib=require('node:zlib');
+const root=path.resolve(__dirname,'..','reference');
+const original=fs.readFileSync(path.join(root,'CP1_2024.glb'));
+const compressed=fs.readFileSync(path.join(root,'CP1_2024.glb.gz'));
+const expanded=zlib.gunzipSync(compressed);
+const digest=buffer=>crypto.createHash('sha256').update(buffer).digest('hex');
+if(digest(original)!==digest(expanded))throw new Error('Compressed aircraft is not byte-identical to the original GLB');
+console.log(`PASS model gzip: ${original.length} -> ${compressed.length} bytes (${(100*compressed.length/original.length).toFixed(1)}%), SHA-256 ${digest(original)}`);

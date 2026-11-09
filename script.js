@@ -311,6 +311,7 @@ const portfolioConfig = {
   function renderPage() {
     const page = state.currentPage;
     const token = ++state.requestToken;
+    window.dispatchEvent(new CustomEvent("portfolio:foreground-load", { detail: { active: true } }));
     settleImageTransition();
     elements.imageFrame.classList.toggle("is-loading", !state.imageReady);
     elements.fallback.hidden = true;
@@ -318,11 +319,13 @@ const portfolioConfig = {
     loadPageImage(page, "high").then(image => {
       if (token !== state.requestToken) return;
       displayLoadedPage(page, image, token);
+      window.dispatchEvent(new CustomEvent("portfolio:foreground-load", { detail: { active: false } }));
     }).catch(() => {
       if (token !== state.requestToken) return;
       elements.imageFrame.classList.remove("is-loading");
       elements.fallbackNumber.textContent = formatVisiblePage(page);
       elements.fallback.hidden = false;
+      window.dispatchEvent(new CustomEvent("portfolio:foreground-load", { detail: { active: false } }));
     });
     preloadAdjacent(page);
   }
@@ -545,5 +548,8 @@ const portfolioConfig = {
   applyConfiguration();
   buildChapterNavigation();
   bindEvents();
-  navigateTo(getPageFromHash() || config.initialPage, { fromHash: true });
+  window.addEventListener('portfolio:open',()=>{
+    if(!state.initialized)navigateTo(getPageFromHash()||config.initialPage,{fromHash:true});
+  });
+  if(document.documentElement.dataset.view==='viewer')navigateTo(getPageFromHash()||config.initialPage,{fromHash:true});
 })();
