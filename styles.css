@@ -229,7 +229,7 @@ img { display: block; max-width: 100%; }
   color: var(--muted);
 }
 .tool-button:hover { color: var(--ink); }
-.tool-separator { width: 1px; height: 22px; background: var(--bg); }
+.tool-separator { width: 1px; height: 22px; background: var(--line); }
 .grid-icon { width: 16px; height: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 3px; }
 .grid-icon i { border: 1px solid currentColor; }
 .search-icon { position: relative; width: 17px; height: 17px; border: 1px solid currentColor; border-radius: 50%; }
