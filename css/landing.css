@@ -1,37 +1,30 @@
 /* The landing and viewer keep one header, grid, and navigation lifecycle. */
 :root { --shell-height: calc(100svh - var(--header-height)); }
 html[data-view] { --header-height: 80px; }
-html[data-view=landing], html[data-view=opening] {
-  color-scheme: light;
-  --bg: #fefdfa;
-  --viewer-bg: #fefdfa;
-  --text: #1c1e21;
-  --muted: #5c6065;
-}
 html[data-view] .site-header {
   position: relative;
   height: var(--header-height);
   padding-inline: clamp(32px,4.45vw,86px);
-  background: #fefdfa;
-  color: #1c1e21;
+  background: var(--bg);
+  color: var(--text);
   border: 0;
 }
 html[data-view] .site-header::after {
   content: ''; position: absolute; bottom: 0;
   left: clamp(32px,4.45vw,86px); right: clamp(32px,4.45vw,86px);
-  height: 1px; background: #aeb0b1;
+  height: 1px; background: var(--header-rule);
 }
 html[data-view] .brand-name { font-size: 29px; letter-spacing: .13em; line-height: 1; }
 html[data-view] .brand-details { display: none; }
 html[data-view] .primary-nav { gap: clamp(28px,3.3vw,54px); }
-html[data-view] .primary-nav a { color: #383e45; font-size: 12px; letter-spacing: .13em; }
-html[data-view] .primary-nav a:is(:hover,:focus-visible,.is-active) { color: #111316; }
-html[data-view] .site-header :focus-visible { outline-color: #25282c; }
+html[data-view] .primary-nav a { color: var(--nav-text); font-size: 12px; letter-spacing: .13em; }
+html[data-view] .primary-nav a:is(:hover,:focus-visible,.is-active) { color: var(--ink); }
+html[data-view] .site-header :focus-visible { outline-color: var(--focus); }
 
 [data-view=landing] .portfolio-layout {
   grid-template-columns: minmax(0,1fr);
   grid-template-rows: minmax(var(--shell-height),auto);
-  background: #fefdfa;
+  background: var(--bg);
 }
 [data-view=landing] .portfolio-sidebar, [data-view=landing] .viewer-main { display: none; }
 [data-view=viewer] .landing-rail, [data-view=viewer] .landing-stage { display: none; }
@@ -56,7 +49,7 @@ html[data-view] .site-header :focus-visible { outline-color: #25282c; }
   margin-top: 18px; background: #abb0b4;
 }
 .landing-intro h1 {
-  margin: 43px 0 0; color: #111316;
+  margin: 43px 0 0; color: var(--ink);
   font: 400 clamp(48px,3.85vw,64px)/1.15 var(--serif);
   letter-spacing: -.04em; white-space: nowrap;
 }
@@ -69,22 +62,22 @@ html[data-view] .site-header :focus-visible { outline-color: #25282c; }
 .landing-actions .open-portfolio {
   width: 286px; min-height: 59px; display: inline-flex; align-items: center;
   justify-content: center; gap: 18px; padding: 0 20px;
-  background: #272a2f; color: #fff; border: 1px solid #272a2f;
+  background: var(--action); color: var(--on-action); border: 1px solid var(--action);
   font-size: 14px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase;
   transition: background .2s, transform .2s;
 }
-.landing-actions .open-portfolio:hover { background: #3b3e43; }
-.landing-actions .open-portfolio:focus-visible, .landing-resume:focus-visible { outline-color: #272a2f; }
+.landing-actions .open-portfolio:hover { background: var(--action-hover); }
+.landing-actions .open-portfolio:focus-visible, .landing-resume:focus-visible { outline-color: var(--action); }
 .landing-resume {
   color: #54585d; border-bottom: 1px solid #8d9093;
   font: 400 20px/1.25 var(--serif);
 }
-.landing-resume:hover { color: #111316; }
+.landing-resume:hover { color: var(--ink); }
 .landing-stage {
-  --landing-bg: #fefdfa;
+  --landing-bg: var(--bg);
   --landing-contour: #a6a29b;
   position: relative; z-index: 1; overflow: hidden; isolation: isolate;
-  background: #fefdfa;
+  background: var(--bg);
 }
 .scene-viewport { position: absolute; inset: 0; pointer-events: none; }
 .scene-canvas, .scene-canvas canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
@@ -174,7 +167,7 @@ html[data-view] .site-header :focus-visible { outline-color: #25282c; }
   [data-view=viewer] .portfolio-layout::after {
     content: ''; position: absolute; z-index: 4; pointer-events: none;
     top: 12px; left: calc(var(--sidebar-width) + 12px); right: 12px;
-    height: calc(var(--shell-height) - 24px); border: 1px solid #aeb3b855;
+    height: calc(var(--shell-height) - 24px); border: 1px solid var(--line);
   }
   [data-view] .portfolio-sidebar, [data-view] .landing-rail,
   [data-view] .landing-stage { min-height: 0; }
@@ -198,7 +191,7 @@ html[data-view] .site-header :focus-visible { outline-color: #25282c; }
   }
   .sidebar-controls .direction-controls button + button { border-left: 1px solid var(--line); }
   .sidebar-controls .direction-label { font-size: 8px; letter-spacing: .15em; text-transform: uppercase; }
-  .sidebar-controls button:focus-visible { outline: 1px solid var(--line-bright); outline-offset: -1px; background: #202429; color: #fff; }
+  .sidebar-controls button:focus-visible { outline: 1px solid var(--line-bright); outline-offset: -1px; background: var(--panel-soft); color: var(--ink); }
   .sidebar-controls .page-jump-form { display: none; }
 }
 @media (max-width: 760px) { .direction-label { display: none; } }
