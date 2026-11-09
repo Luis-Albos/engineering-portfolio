@@ -34,12 +34,14 @@ jobs:
         run: python -m pip install -r requirements-study.txt
       - name: Generate Study Archive manifest and thumbnails
         run: python scripts/build_study_archive.py
+      - name: Prepare public static files
+        run: python scripts/prepare_site.py --output _site
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
       - name: Upload site artifact
         uses: actions/upload-pages-artifact@v5
         with:
-          path: .
+          path: _site
 
   deploy:
     if: github.ref == 'refs/heads/main'

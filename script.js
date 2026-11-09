@@ -36,22 +36,31 @@ const portfolioConfig = {
     requestToken: 0,
     initialized: false,
     imageReady: false,
-    activeImageSlot: 0,
-    imageTransitionTimer: null,
+    mode: "auto",
+    layout: "single",
+    displayedPages: [],
+    renderer: null,
+    rendererPromise: null,
+    rendererFailed: false,
+    keepPages: new Set(),
+    detailScale: 1,
     preloadTimer: null,
-    thumbnailsBuilt: false,
-    touchStartX: 0,
-    touchStartY: 0
+    thumbnailsBuilt: false
   };
 
   // Share both pending loads and decoded images between navigation and prefetch.
   const pageCache = new Map();
 
   const elements = {
-    pageImages: Array.from(document.querySelectorAll(".portfolio-page-image")),
+    surface: document.querySelector(".page-turn-surface"),
+    sheetSpace: document.querySelector(".sheet-space"),
+    viewer: document.querySelector("#portfolio-viewer"),
+    status: document.querySelector("#viewer-status"),
+    retry: document.querySelector("#retry-page"),
+    chapters: document.querySelector("#chapters-dialog"),
+    detail: document.querySelector("#detail-dialog"),
+    detailImage: document.querySelector(".detail-image"),
     imageFrame: document.querySelector("#image-frame"),
-    fallback: document.querySelector("#page-fallback"),
-    fallbackNumber: document.querySelector(".fallback-page-number"),
     pageInput: document.querySelector("#page-input"),
     previous: document.querySelector(".previous-button"),
     next: document.querySelector(".next-button"),
@@ -152,6 +161,7 @@ const portfolioConfig = {
         button.addEventListener("click", () => {
           navigateTo(chapter.startPage);
           closeDrawer();
+          elements.chapters.close();
           document.querySelector("#portfolio-viewer").scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth" });
         });
         fragment.append(button);
@@ -187,7 +197,7 @@ const portfolioConfig = {
       number.className = "thumbnail-number";
       number.textContent = `Page ${formatVisiblePage(page)}`;
       button.append(media, number);
-      button.addEventListener("click", () => navigateTo(page));
+      button.addEventListener("click", () => { navigateTo(page); elements.chapters.close(); });
       fragment.append(button);
     }
 
@@ -202,6 +212,7 @@ const portfolioConfig = {
     document.querySelectorAll(".thumbnails-button").forEach(button => button.setAttribute("aria-expanded", String(shouldShow)));
     document.querySelector(".portfolio-sidebar .chapter-nav").hidden = shouldShow;
     if (shouldShow) updateThumbnailSelection();
+    if (!elements.chapters.open) elements.chapters.showModal();
   }
 
   function navigateTo(page, options = {}) {
@@ -219,7 +230,7 @@ const portfolioConfig = {
 
     state.currentPage = target;
     state.initialized = true;
-    renderPage();
+    renderPage({ animate: !options.fromHash && !options.fromGesture, previous: options.previous ?? null });
 
     if (!options.fromHash && pageChanged) {
       history.pushState(null, "", `${window.location.pathname}${window.location.search}${canonicalHash}`);
@@ -228,19 +239,72 @@ const portfolioConfig = {
     }
   }
 
+  function pagesFor(page = state.currentPage, layout = state.layout) {
+    if (layout === "single" || page === 1) return [page];
+    const first = page % 2 === 0 ? page : page - 1;
+    return [first, first + 1].filter(value => value <= config.totalPages);
+  }
+
+  function stepPage(direction) {
+    const pages = pagesFor();
+    if (direction > 0 && pages.at(-1) >= config.totalPages || direction < 0 && pages[0] <= 1) return state.currentPage;
+    if (state.layout === "single") return clamp(state.currentPage + direction, 1, config.totalPages);
+    return clamp(direction > 0 ? pages.at(-1) + 1 : pages[0] === 2 ? 1 : pages[0] - 2, 1, config.totalPages);
+  }
+
+  function getFit() {
+    const rect = elements.sheetSpace.getBoundingClientRect();
+    const width = Math.max(1, rect.width || innerWidth - 32);
+    const height = Math.max(1, rect.height || innerHeight - 310);
+    const ratio = 3507 / 2481;
+    const doubleWidth = Math.min(width / 2, height * ratio);
+    const layout = state.mode === "auto" ? (doubleWidth >= 680 ? "double" : "single") : state.mode;
+    return { layout, width: Math.floor(Math.min(width / (layout === "double" ? 2 : 1), height * ratio)), ratio };
+  }
+
   function settleImageTransition() {
-    window.clearTimeout(state.imageTransitionTimer);
-    state.imageTransitionTimer = null;
-    elements.pageImages.forEach((image, index) => {
-      const isActive = index === state.activeImageSlot;
-      // Finish an interrupted fade before reusing the other layer.
-      image.style.transition = "none";
-      image.classList.toggle("is-loaded", isActive && state.imageReady);
-      image.style.zIndex = isActive ? "1" : "0";
-      image.alt = isActive ? image.alt : "";
-    });
-    void elements.imageFrame.offsetWidth;
-    elements.pageImages.forEach(image => { image.style.transition = ""; });
+    state.renderer?.settle();
+  }
+
+  async function getRenderer() {
+    if (state.rendererFailed) return null;
+    if (!state.rendererPromise) {
+      const url = new URL("js/page-turn-renderer.js", document.baseURI);
+      url.searchParams.set("v", SITE_CONFIG.build);
+      state.rendererPromise = import(url.href).then(module => {
+        state.renderer = module.createPageTurnRenderer({
+          container: elements.surface,
+          totalPages: config.totalPages,
+          onTurn: page => navigateTo(page, { fromGesture: true }),
+          canTurn: direction => pagesFor(stepPage(direction)).every(page => pageCache.get(page)?.loaded),
+          onUnavailable: () => { state.rendererFailed = true; state.renderer = null; renderPage({ animate: false }); }
+        });
+        return state.renderer;
+      }).catch(() => { state.rendererFailed = true; return null; });
+    }
+    return state.rendererPromise;
+  }
+
+  function trimCache() {
+    for (const [page, entry] of pageCache) {
+      if (entry.loaded && !state.keepPages.has(page) && !state.displayedPages.includes(page)) pageCache.delete(page);
+    }
+    elements.viewer.dataset.retainedPages = String(pageCache.size);
+  }
+
+  function fallbackSheets(pages) {
+    const group = document.createElement("div");
+    group.className = "page-turn-fallback";
+    for (const page of pages) {
+      const sheet = document.createElement("div");
+      sheet.className = "portfolio-sheet";
+      sheet.dataset.page = page;
+      sheet.append(pageCache.get(page).image);
+      group.append(sheet);
+    }
+    elements.surface.style.cssText = "width:100%;height:100%;left:0";
+    elements.surface.replaceChildren(group);
+    elements.viewer.dataset.renderer = "fallback";
   }
 
   function loadPageImage(page, priority = "low") {
@@ -252,6 +316,10 @@ const portfolioConfig = {
     const image = new Image();
     image.decoding = "async";
     image.fetchPriority = priority;
+    image.className = "portfolio-page-image";
+    image.dataset.page = page;
+    image.draggable = false;
+    image.alt = "";
     const ready = new Promise((resolve, reject) => {
       image.onload = async () => {
         try {
@@ -269,73 +337,98 @@ const portfolioConfig = {
       pageCache.delete(page); // Failed pages can be retried.
       throw error;
     });
-    pageCache.set(page, { image, ready });
+    const entry = { image, ready, loaded: false };
+    ready.then(() => { entry.loaded = true; trimCache(); }).catch(() => {});
+    pageCache.set(page, entry);
     image.src = config.pagePath(page);
     return ready;
   }
 
-  function displayLoadedPage(page, image, token) {
-    if (token !== state.requestToken) return;
-    settleImageTransition();
-    const outgoingSlot = state.activeImageSlot;
-    const outgoingImage = elements.pageImages[outgoingSlot];
-    if (image === outgoingImage && state.imageReady) return;
-    const incomingSlot = state.imageReady ? 1 - outgoingSlot : outgoingSlot;
-    const placeholder = elements.pageImages[incomingSlot];
-    const activeChapter = getActiveChapter(page);
-
-    // Mount the exact decoded node, not a second image with the same URL.
-    image.className = "portfolio-page-image";
-    image.id = placeholder.id;
-    image.draggable = false;
-    image.style.zIndex = "2";
-    image.alt = `Luis Albos Engineering Portfolio, page ${formatVisiblePage(page)} of ${config.totalPages}: ${activeChapter.fullTitle || activeChapter.title}`;
-    placeholder.replaceWith(image);
-    elements.pageImages[incomingSlot] = image;
-    elements.imageFrame.style.setProperty("--page-ratio", String(image.naturalWidth / image.naturalHeight));
-    elements.imageFrame.classList.remove("is-loading");
-    const hadImage = state.imageReady;
-    state.imageReady = true;
-    state.activeImageSlot = incomingSlot;
-    void image.offsetWidth;
-    image.classList.add("is-loaded");
-
-    // Keep an opaque base underneath the fade to avoid a dark frame midway.
-    // The old layer disappears beneath the new one, then is cleaned up.
-    if (prefersReducedMotion() || !hadImage) settleImageTransition();
-    else state.imageTransitionTimer = window.setTimeout(() => {
-      if (token === state.requestToken) settleImageTransition();
-    }, 210);
-  }
-
-  function renderPage() {
+  async function renderPage({ animate = false } = {}) {
     const page = state.currentPage;
     const token = ++state.requestToken;
+    const fit = getFit();
+    state.layout = fit.layout;
+    const pages = pagesFor(page);
+    const nearby = state.layout === "double"
+      ? Array.from({ length: 6 }, (_, index) => pages[0] - 2 + index)
+      : Array.from({ length: 7 }, (_, index) => page - 3 + index);
+    state.keepPages = new Set(nearby.filter(value => value >= 1 && value <= config.totalPages));
+    pages.forEach(value => state.keepPages.add(value));
     window.dispatchEvent(new CustomEvent("portfolio:foreground-load", { detail: { active: true } }));
     settleImageTransition();
-    elements.imageFrame.classList.toggle("is-loading", !state.imageReady);
-    elements.fallback.hidden = true;
+    elements.retry.hidden = true;
+    elements.viewer.setAttribute("aria-busy", "true");
+    elements.status.textContent = `Loading ${pages.length > 1 ? "pages" : "page"} ${pages.map(formatVisiblePage).join("–")}${state.displayedPages.length ? ` · still showing ${state.displayedPages.map(formatVisiblePage).join("–")}` : ""}…`;
     updateInterface(page);
-    loadPageImage(page, "high").then(image => {
+    try {
+      await Promise.all(pages.map(value => loadPageImage(value, "high").catch(error => { error.page = value; throw error; })));
       if (token !== state.requestToken) return;
-      displayLoadedPage(page, image, token);
-      window.dispatchEvent(new CustomEvent("portfolio:foreground-load", { detail: { active: false } }));
-    }).catch(() => {
+      const renderer = await getRenderer();
       if (token !== state.requestToken) return;
-      elements.imageFrame.classList.remove("is-loading");
-      elements.fallbackNumber.textContent = formatVisiblePage(page);
-      elements.fallback.hidden = false;
-      window.dispatchEvent(new CustomEvent("portfolio:foreground-load", { detail: { active: false } }));
-    });
-    preloadAdjacent(page);
+      const previous = state.displayedPages;
+      const sameLayout = elements.imageFrame.dataset.layout === state.layout;
+      elements.imageFrame.style.width = `${fit.width * pages.length}px`;
+      elements.imageFrame.style.height = `${fit.width / fit.ratio}px`;
+      for (const [value, entry] of pageCache) {
+        entry.image.className = "portfolio-page-image";
+        entry.image.dataset.page = value;
+        entry.image.draggable = false;
+        entry.image.alt = "";
+      }
+      if (renderer) {
+        try {
+          renderer.render({ page, double: state.layout === "double", width: fit.width, height: fit.width / fit.ratio,
+            images: new Map([...pageCache].filter(([, entry]) => entry.loaded).map(([value, entry]) => [value, entry.image])),
+            animate: animate && sameLayout && !prefersReducedMotion() && previous.length > 0 && Math.abs(pages[0] - previous[0]) <= 2 });
+          elements.viewer.dataset.renderer = "page-flip";
+          renderer.setActive(document.documentElement.dataset.view !== "landing" && !document.hidden);
+        } catch (_) {
+          renderer.dispose(); state.renderer = null; state.rendererFailed = true;
+          fallbackSheets(pages);
+        }
+      } else fallbackSheets(pages);
+      state.displayedPages = pages;
+      state.imageReady = true;
+      elements.imageFrame.dataset.layout = state.layout;
+      elements.imageFrame.dataset.displayedPages = pages.join(",");
+      for (const entry of pageCache.values()) entry.image.classList.toggle("is-loaded", pages.includes(Number(entry.image.dataset.page)));
+      elements.imageFrame.querySelector(".sheet-seam")?.remove();
+      if (pages.length === 2) {
+        const seam = document.createElement("span"); seam.className = "sheet-seam";
+        elements.imageFrame.append(seam);
+      } else elements.imageFrame.querySelector(".sheet-seam")?.remove();
+      document.querySelector(".sheet-descriptions").replaceChildren(...pages.map(value => {
+        const node = document.createElement("span"); node.setAttribute("role", "img");
+        node.setAttribute("aria-label", `Luis Albos Engineering Portfolio, page ${value} of ${config.totalPages}: ${getActiveChapter(value).fullTitle || getActiveChapter(value).title}`);
+        return node;
+      }));
+      document.querySelector(".visible-page-range").textContent = `${pages.map(formatVisiblePage).join("–")} / ${config.totalPages}`;
+      elements.status.textContent = `Page ${formatVisiblePage(page)} selected${pages.length > 1 ? ` · showing ${pages.map(formatVisiblePage).join("–")}` : ""}`;
+      trimCache();
+      preloadAdjacent(page);
+    } catch (error) {
+      if (token !== state.requestToken) return;
+      elements.status.textContent = `Page ${formatVisiblePage(error.page || page)} could not load.${state.displayedPages.length ? ` Still showing ${state.displayedPages.map(formatVisiblePage).join("–")}.` : ""}`;
+      elements.retry.hidden = false;
+    } finally {
+      if (token === state.requestToken) {
+        elements.viewer.setAttribute("aria-busy", "false");
+        window.dispatchEvent(new CustomEvent("portfolio:foreground-load", { detail: { active: false } }));
+      }
+    }
   }
 
   function updateInterface(page) {
     document.querySelectorAll(".current-page-display").forEach(node => { node.textContent = formatVisiblePage(page); });
     document.querySelectorAll(".progress-bar").forEach(bar => { bar.style.width = `${(page / config.totalPages) * 100}%`; });
     elements.pageInput.value = page;
-    elements.previous.disabled = page <= 1;
-    elements.next.disabled = page >= config.totalPages;
+    elements.previous.disabled = pagesFor(page)[0] <= 1;
+    elements.next.disabled = pagesFor(page).at(-1) >= config.totalPages;
+    elements.viewer.dataset.mode = state.mode;
+    elements.viewer.dataset.layout = state.layout;
+    document.querySelectorAll("[data-view-mode]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.viewMode === state.mode)));
+    document.querySelector("#mode-caption").textContent = state.layout === "double" ? "Two-page view" : "Single-page view";
 
     const active = getActiveChapter(page);
     document.querySelectorAll(".chapter-link").forEach(link => {
@@ -373,24 +466,22 @@ const portfolioConfig = {
   }
 
   function preloadAdjacent(page) {
-    if (state.preloadTimer !== null) {
-      if (typeof window.cancelIdleCallback === "function") window.cancelIdleCallback(state.preloadTimer);
-      else window.clearTimeout(state.preloadTimer);
-    }
-    const preload = () => {
-      state.preloadTimer = null;
-      if (page !== state.currentPage) return;
-      [-1, 1, -2, 2, -3, 3].forEach(offset => {
-        const nearby = page + offset;
-        if (nearby >= 1 && nearby <= config.totalPages) loadPageImage(nearby).catch(() => {});
-      });
-    };
-    state.preloadTimer = typeof window.requestIdleCallback === "function"
-      ? window.requestIdleCallback(preload, { timeout: 700 })
-      : window.setTimeout(preload, 150);
+    clearTimeout(state.preloadTimer);
+    state.preloadTimer = setTimeout(async () => {
+      if (page !== state.currentPage || document.documentElement.dataset.view === "landing") return;
+      const token = state.requestToken;
+      await Promise.all([...state.keepPages].map(value => loadPageImage(value).catch(() => null)));
+      if (token !== state.requestToken) return;
+      trimCache();
+      if (state.renderer && !state.rendererFailed) {
+        state.renderer.syncImages(new Map([...pageCache].filter(([, entry]) => entry.loaded).map(([value, entry]) => [value, entry.image])));
+      }
+    }, 150);
   }
 
   function openSearch() {
+    closeDrawer();
+    if (elements.chapters.open) elements.chapters.close();
     renderSearchResults("");
     if (typeof elements.searchDialog.showModal === "function") elements.searchDialog.showModal();
     else elements.searchDialog.setAttribute("open", "");
@@ -458,6 +549,7 @@ const portfolioConfig = {
     elements.drawer.setAttribute("inert", "");
     elements.drawer.setAttribute("aria-hidden", "true");
     elements.menuButton.setAttribute("aria-expanded", "false");
+    elements.menuButton.focus({ preventScroll: true });
     document.body.classList.remove("drawer-open");
     window.setTimeout(() => { elements.drawerBackdrop.hidden = true; }, 250);
   }
@@ -477,16 +569,52 @@ const portfolioConfig = {
   }
 
   function bindEvents() {
-    // Move the same controls at the breakpoint; keep their navigation/cache handlers intact.
-    const mobileViewer=window.matchMedia('(max-width: 760px)');
-    const viewerControls=document.querySelector('.viewer-controls');
-    const placeViewerControls=()=>{
-      document.querySelector(mobileViewer.matches?'.viewer-stage':'.portfolio-sidebar').append(viewerControls);
-    };
-    placeViewerControls();mobileViewer.addEventListener('change',placeViewerControls);
-    document.querySelector("#retry-page").addEventListener("click", renderPage);
-    elements.previous.addEventListener("click", () => navigateTo(state.currentPage - 1));
-    elements.next.addEventListener("click", () => navigateTo(state.currentPage + 1));
+    elements.retry.addEventListener("click", () => renderPage());
+    elements.previous.addEventListener("click", () => navigateTo(stepPage(-1)));
+    elements.next.addEventListener("click", () => navigateTo(stepPage(1)));
+    document.querySelectorAll("[data-view-mode]").forEach(button => button.addEventListener("click", () => {
+      if (state.mode === button.dataset.viewMode) return;
+      state.mode = button.dataset.viewMode;
+      renderPage();
+    }));
+    document.querySelector(".chapters-button").addEventListener("click", () => elements.chapters.showModal());
+    document.querySelector(".chapters-close").addEventListener("click", () => elements.chapters.close());
+    elements.chapters.addEventListener("close", () => document.querySelector(".chapters-button").focus({ preventScroll: true }));
+    let resizeTimer;
+    new ResizeObserver(() => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        if (!state.initialized || document.documentElement.dataset.view === "landing") return;
+        const fit = getFit();
+        if (fit.layout !== state.layout || Math.abs(parseFloat(elements.imageFrame.style.height || "0") - fit.width / fit.ratio) > 1) renderPage();
+      }, 80);
+    }).observe(elements.sheetSpace);
+    const motionQuery = matchMedia("(prefers-reduced-motion: reduce)");
+    motionQuery.addEventListener("change", () => { if (state.initialized) renderPage(); });
+    const detailButton = document.querySelector(".detail-button");
+    function setDetailScale(value) {
+      state.detailScale = clamp(value, 1, 8);
+      elements.detailImage.style.width = `${state.detailScale * 100}%`;
+      document.querySelector("#detail-out").disabled = state.detailScale === 1;
+      document.querySelector("#detail-in").disabled = state.detailScale === 8;
+    }
+    detailButton.addEventListener("click", async () => {
+      const page = state.currentPage;
+      try {
+        const image = await loadPageImage(page, "high");
+        if (page !== state.currentPage) return;
+        elements.detailImage.src = image.src;
+        elements.detailImage.alt = `Page ${page}: ${getActiveChapter(page).fullTitle || getActiveChapter(page).title}`;
+        document.querySelector("#detail-title").textContent = `Page ${formatVisiblePage(page)} detail`;
+        setDetailScale(1); elements.detail.showModal();
+      } catch (_) { elements.status.textContent = `Page ${formatVisiblePage(page)} could not load. Use Retry or choose another page.`; elements.retry.hidden = false; }
+    });
+    document.querySelector("#detail-in").addEventListener("click", () => setDetailScale(state.detailScale * 2));
+    document.querySelector("#detail-out").addEventListener("click", () => setDetailScale(state.detailScale / 2));
+    document.querySelector("#detail-reset").addEventListener("click", () => setDetailScale(1));
+    document.querySelector("#detail-close").addEventListener("click", () => elements.detail.close());
+    elements.detail.addEventListener("close", () => { elements.detailImage.removeAttribute("src"); detailButton.focus({ preventScroll: true }); });
+    elements.searchDialog.addEventListener("close", () => document.querySelector(".chapters-button").focus({ preventScroll: true }));
     elements.pageInput.closest("form").addEventListener("submit", event => {
       event.preventDefault();
       navigateTo(elements.pageInput.value);
@@ -519,30 +647,29 @@ const portfolioConfig = {
     document.addEventListener("keydown", event => {
       const tag = document.activeElement?.tagName;
       const isTyping = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
-      if (!isTyping && !elements.searchDialog.open && !document.querySelector("#portfolio-viewer").inert) {
-        if (event.key === "ArrowLeft") { event.preventDefault(); navigateTo(state.currentPage - 1); }
-        if (event.key === "ArrowRight") { event.preventDefault(); navigateTo(state.currentPage + 1); }
+      if (!isTyping && !elements.searchDialog.open && !elements.chapters.open && !elements.detail.open && elements.drawer.getAttribute("aria-hidden") !== "false" && !document.querySelector("#portfolio-viewer").inert) {
+        if (event.key === "ArrowLeft") { event.preventDefault(); navigateTo(stepPage(-1)); }
+        if (event.key === "ArrowRight") { event.preventDefault(); navigateTo(stepPage(1)); }
       }
       if (event.key === "Escape") closeDrawer();
     });
-
-    elements.imageFrame.addEventListener("touchstart", event => {
-      state.touchStartX = event.changedTouches[0].clientX;
-      state.touchStartY = event.changedTouches[0].clientY;
-    }, { passive: true });
-    elements.imageFrame.addEventListener("touchend", event => {
-      const deltaX = event.changedTouches[0].clientX - state.touchStartX;
-      const deltaY = event.changedTouches[0].clientY - state.touchStartY;
-      if (Math.abs(deltaX) > 55 && Math.abs(deltaX) > Math.abs(deltaY) * 1.4) {
-        navigateTo(state.currentPage + (deltaX < 0 ? 1 : -1));
-      }
-    }, { passive: true });
 
     document.addEventListener("fullscreenchange", () => {
       document.querySelectorAll(".fullscreen-button").forEach(button => {
         button.setAttribute("aria-label", document.fullscreenElement ? "Exit fullscreen" : "Enter fullscreen");
       });
     });
+    let fallbackPointer;
+    elements.imageFrame.addEventListener("pointerdown", event => {
+      if (state.rendererFailed) fallbackPointer = { x: event.clientX, y: event.clientY };
+    });
+    elements.imageFrame.addEventListener("pointerup", event => {
+      if (!fallbackPointer) return;
+      const dx = event.clientX - fallbackPointer.x, dy = event.clientY - fallbackPointer.y;
+      fallbackPointer = null;
+      if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.4) navigateTo(stepPage(dx < 0 ? 1 : -1));
+    });
+    elements.imageFrame.addEventListener("pointercancel", () => { fallbackPointer = null; });
   }
 
   applyConfiguration();
@@ -550,6 +677,14 @@ const portfolioConfig = {
   bindEvents();
   window.addEventListener('portfolio:open',()=>{
     if(!state.initialized)navigateTo(getPageFromHash()||config.initialPage,{fromHash:true});
+    else renderPage();
   });
+  new MutationObserver(() => {
+    const active = document.documentElement.dataset.view !== 'landing' && !document.hidden;
+    state.renderer?.setActive(active);
+    if (!active) clearTimeout(state.preloadTimer);
+  }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-view'] });
+  document.addEventListener('visibilitychange', () => state.renderer?.setActive(!document.hidden && document.documentElement.dataset.view !== 'landing'));
+  window.addEventListener('pagehide', () => state.renderer?.setActive(false));
   if(document.documentElement.dataset.view==='viewer')navigateTo(getPageFromHash()||config.initialPage,{fromHash:true});
 })();
