@@ -116,3 +116,16 @@ At the artifact boundary, preserve the existing Pages checks (`sync-boot.cjs --c
 ## Migration Plan
 
 No source-document, stored user-data, or URL migration. Keep the selected viewing mode in memory only. Cook delivers a verified static preview and draft PR after separate authorization; retain the present live site during that work. Plating and publication remain subsequent owner gates. The final release class/version is determined from the delivered change; do not bump 1.2.1 during Prep. Rollback restores the prior viewer with a fresh build marker so cached clients can obtain the restored assets without rewriting release history.
+
+
+## Cook Implementation Decisions — 2026-11-09
+
+The real-page first slice and independent Engineering verification qualified **StPageFlip 2.0.7 with an unchanged self-hosted ESM bundle**; no broader renderer or hosted service is needed. `js/page-turn-renderer.js` owns the version-specific integration documented in `assets/vendor/page-flip/README.md`: synchronous capture/cancellation of the stock startup RAF, instance-level demand scheduling with fresh time/nonnegative frame indexing, explicit handler cleanup, fixed fitted geometry for forced modes, all-soft sheet density, and a rolling page window. The controller retains canonical selected-page/history ownership. Programmatic callbacks do not create navigation entries.
+
+Final initial tuning is **680 CSS pixels minimum per fitted sheet for Auto Double**, **400 ms** nominal click turns, and **0.10** maximum turn-shadow opacity. The renderer mounts up to three Single sheets or six Double sheets; the controller retains up to seven Single or six Double nearby decoded images, plus transient in-flight/last-readable failure state. Pointer intent preserves vertical phone scroll. Single horizontal travel is normalized to the engine's portrait fold coordinates, and a short backward Single drag explicitly returns flat without navigation/history; this resolves two independent native-touch findings. Right-hand-page cancellation compares the initial and final engine indices to preserve the exact selected page. Prefetched images get fit metadata before any temporary turn copy.
+
+`css/portfolio-viewer.css` keeps geometry changes scoped to the viewer. The concept's Chapters, search, thumbnails, detail/zoom and fullscreen use actual dialogs/controls and focus return; decorative renderer layers are hidden from accessibility APIs. Detail enlargement is 1x/2x/4x/8x with a fitted reset and scrolling. Mode selection is document-session memory only, as proposed. Source artwork bytes and the landing aircraft implementation are unchanged.
+
+The existing Pages upload of the entire checkout was narrowed to a public allowlist staged by `scripts/prepare_site.py`. This is the specified artifact/dependency boundary, not a deployment-trigger or approval-policy change. The same staging is used for the local verified artifact; the existing archive generator produces 10 classes/21 resources there. Build-only regenerated seed manifest/thumbnail changes are excluded from source commits. Product `VERSION` remains 1.2.1; runtime build marker is 20261109-03.
+
+The independent report, artifact identity, completed checks and evidence limits are recorded in `verification.md`. No material product or aesthetic deviation from the accepted thin-sheet concept was needed.

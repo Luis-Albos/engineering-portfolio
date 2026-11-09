@@ -33,3 +33,8 @@ The existing one-image crossfade does not provide the landscape page-flipping ex
 ## Scope and Authority
 
 The owner accepted the second concept and explicitly confirmed brainstorming finished and proposal preparation on 2026-11-09. The named authorized batch is **responsive-landscape-flipbook — Prep planning artifacts and bundled reference only**. Implementation, draft PR, merge, and publication require their subsequent workflow authority. See [receipt.md](receipt.md) for the current handoff state and [design.md](design.md) for decisions, proposed conventions, and the smallest acceptance journey.
+
+
+## Cook Authorization
+
+The owner's subsequent `$alephon-cook-line` invocation on 2026-11-09 authorizes implementation, verification, scoped commits, push, and a draft PR for this named change. This is the active Cook batch; it does not authorize merge or publication. See `verification.md` and the Cook delivery card for actual evidence and current review state.
