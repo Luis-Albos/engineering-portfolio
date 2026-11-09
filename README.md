@@ -232,7 +232,13 @@ Tune `TERRAIN_CONFIG` in `js/experience-config.js`: `heightScale`, `valleyScale`
 `roughness`, `cycles`, `warp`, `forwardSpeed`, `direction`, `contourDensity`,
 `contourOpacity`, `lineWidth`, and fog distances. `segments`/`lowSegments` control
 vertex cost. `LANDING_PALETTE` reads the scene's `--landing-bg` and
-`--landing-contour` CSS tokens; the viewer keeps its separate palette.
+`--landing-contour` CSS tokens. The shared palette in `styles.css` supplies the
+warm-white canvas, graphite text, neutral surfaces, rules, actions, and focus
+colors for the landing, Portfolio, Resume, and Study Archive. `css/landing.css`
+keeps the landing layout and scene-specific contour treatment;
+`resources/resources.css` uses the same shared colors for archive controls and
+document surrounds. Original portfolio artwork and PDF contents retain their
+colors; browser-provided PDF toolbars follow the browser's own appearance.
 `AIRCRAFT_CONFIG.surface`, `.edges`, and `.idle` control the paper fill,
 feature filtering, edge opacity, drift, yaw/pitch/bank, and cycle length.
 No additional runtime dependency, backend, image texture, or runtime CAD conversion
@@ -279,4 +285,5 @@ featured-project annotation appears. On narrow screens, the copy and action stay
 ahead of the scene in reading order. The aircraft is the real
 `reference/CP1_2024.glb`, raised over the mountain field with a paper-colored fill
 and dark sketch lines.
-The existing viewer, flipbook planning, resume, and resources are separate work.
+The viewer, Resume, and Resources share the landing's light palette while
+retaining their existing layouts and behavior. Flipbook planning remains separate.
