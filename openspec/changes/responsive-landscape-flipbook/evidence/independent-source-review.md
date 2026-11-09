@@ -32,4 +32,3 @@ Measured completed-command durations: isolated unmodified-package qualification 
 ## Evidence limits
 
 Physical background-tab throttling was not observed: headless Chrome continued reporting a background tab as visible. The visibility handler was exercised synthetically. Safari, Firefox, physical mobile hardware, arbitrary memory-pressure eviction, production deployment, and the final packaged artifact were not checked here. Browser decoded/GPU memory was not measured; bounded resources are evidenced by the application's retained-entry count and mounted sheet/image nodes. Packaging smoke remains pending the supplied artifact path.
-

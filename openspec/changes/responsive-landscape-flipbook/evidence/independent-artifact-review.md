@@ -19,4 +19,3 @@ Ports 8765/8766 used a Python development server that ignored Range headers and 
 Evidence: `packaged-artifact-report.json`; `packaged-desktop-spread-4-5.png`; `packaged-phone-forced-double.png`; `packaged-resources-21-documents.png`. The executable temporary smoke is `C:/Users/Letzel/AppData/Local/Temp/portfolio-packaged-review.cjs`.
 
 This verifies the local prepared artifact, not production publication or a merge. Physical hidden-tab throttling remains unobserved; the earlier independent source report documents its synthetic visibility-handler check and other browser/device limits. No repository or artifact files were modified by this reviewer.
-
