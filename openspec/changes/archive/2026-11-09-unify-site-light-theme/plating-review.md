@@ -1,8 +1,8 @@
 **OPEN THIS:** [Final-review preview](http://127.0.0.1:56409/engineering-portfolio/). Canonical checkout: `C:/Users/Letzel/Desktop/Engineering/engineering-portfolio`; reviewed incoming PR head `bc0a2ea4564430955d50f279e0cece8f4baaf934`, with the separator correction described below. Installation is inapplicable.
 
-# Plating Review — 2026-11-09
+# Plating Review — 2026-11-09 (pre-merge record)
 
-**RESULT:** Technical review and OpenSpec reconciliation passed. Merge is held because the existing workflow publishes to production on every push to `main`, while this Plating invocation authorizes integration but reserves production publication.
+**RESULT:** Technical review and OpenSpec reconciliation passed. The owner subsequently explicitly authorized production release 1.2.1 on 2026-11-09, clearing the publication gate. Release preparation, guarded merge, and deployment verification proceed under that authorization; the final PR body records the checked release head and publication result.
 
 **CHANGE:** `unify-site-light-theme` — extend the existing homepage's warm-white palette across Portfolio, Resume, and Study Archive, including controls and document surrounds.
 
@@ -14,10 +14,20 @@
 
 **OPENSPEC:** All four planning artifacts and all 10 implementation tasks were complete. The `site-theme` delta was synced to `openspec/specs/site-theme/spec.md`, preserving its Purpose, five requirements, and nine scenarios. Strict validation passed for all three main specs and for the completed change. The change is archived here with its proposal, decisions, task history, and Cook evidence preserved. The archive is an implementation record, not a claim of production release.
 
-**VERSION:** The public site was independently checked at version 1.2.0, build `20261109-01`. This is a compatible visual correction with no changed routes, data, documents, or launcher contract, so the final impact class is **patch**. Engineering's version helper calculated **1.2.1** as the next candidate. `VERSION` remains 1.2.0 because publication has not been authorized; a release version/notes update and affected artifact checks are required if publication is approved.
+**VERSION:** The previous public site was independently checked at version 1.2.0, build `20261109-01`. This is a compatible visual correction with no changed routes, data, documents, or launcher contract, so the final impact class is **patch**. After explicit owner production authorization, Engineering's version helper synchronized `VERSION` to **1.2.1** and release notes were added. The reviewed runtime build marker remains `20261109-02`.
 
 **ARTIFACT:** Final-review static output is retained at `C:/Users/Letzel/AppData/Local/Temp/portfolio-light-theme-plating-5a01pnml/engineering-portfolio`. Its 152-file checksum manifest is adjacent at `SHA256SUMS.txt`, SHA-256 `1c9a38de1096af904e5a6c08351af7704ec592804e4c0d7c7b939c2e7bd3e4a6`. It preserves the Cook artifact's generated 10-class/21-resource archive and document bytes, with the corrected stylesheet. The original Cook artifact and evidence remain available. No Node dependency directory is included. Pre-existing untracked `.playwright-mcp/` is preserved and excluded from the PR.
 
-**REMAINING:** Authorize the production publication that merging PR #5 automatically triggers. Then prepare the 1.2.1 release fields/notes, renew affected version/artifact evidence, recheck the exact PR head, merge through GitHub's guarded API, and verify the target tree and deployment. Do not disable or rewrite the release workflow to sidestep this owner decision.
+**REMAINING:** Verify the prepared release artifact, recheck the exact PR head and GitHub gates, merge through the guarded API, and follow Pages deployment to a live-site observation. Production authorization has been supplied; do not request it again. No release-workflow protections were disabled or rewritten.
 
-The [invoked Plating Line skill](../../../../.agents/skills/alephon-plating-line/SKILL.md) states that it "does not authorize a production release." `.github/workflows/pages.yml` deploys on a `main` push, and the `github-pages` environment has branch-policy protection only, with no publication approval gate. This is an observed integration/publication coupling, not a hypothetical risk or a request to reauthorize the merge itself.
+The [invoked Plating Line skill](../../../../.agents/skills/alephon-plating-line/SKILL.md) states that it "does not authorize a production release." `.github/workflows/pages.yml` deploys on a `main` push, and the `github-pages` environment has branch-policy protection only, with no publication approval gate. The owner was therefore asked for separate publication authorization and explicitly granted it before this release was prepared.
+
+## Authorized 1.2.1 Release Preparation
+
+- Owner authorization: “Yes. Authorized as production release” on 2026-11-09. This covers the release already identified in PR #5 and the automatic Pages publication accompanying its merge.
+- `VERSION` and Engineering's status helper report 1.2.1; `RELEASE_NOTES.md` describes the compatible light-theme correction. Runtime build marker stays `20261109-02`; no displayed product-version field or dependency lockfile requires another update.
+- Embedded boot, cache-version, strict main-spec validation, and whitespace checks passed in 2.0 seconds after the version change. Cook/Plating behavior evidence above is reused because the only additional runtime artifact change is the product-version file.
+- Release artifact: `C:/Users/Letzel/AppData/Local/Temp/portfolio-light-theme-release-b6j4w9rj/engineering-portfolio`, assembled in 1.5 seconds from the verified final-review artifact plus current version/release notes. It contains 153 files and no Node dependency directory; the previously generated 10-class/21-resource archive is preserved.
+- Release checksum manifest: adjacent `SHA256SUMS.txt`, SHA-256 `407cd3bf455b5bb419f198237a0d9c9e3a80a97cd7693d80670eb6c72eb3ba50`.
+- The actual HTTP-served release artifact passed focused Chrome verification in 1.8 seconds: VERSION 1.2.1, build `20261109-02`, the Portfolio/Resume/Study Archive light palette, all 21 generated resources, successful study-PDF byte ranges, and no page errors. Engineering's version helper also verified 1.2.1 directly in the artifact.
+- The PR body and final service receipt will identify the guarded release head, actual merge commit, Pages run, and observed public version after publication. This file preserves the pre-merge preparation evidence rather than claiming deployment before it happens.

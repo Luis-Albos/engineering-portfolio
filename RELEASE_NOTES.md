@@ -1,5 +1,13 @@
 # Release notes
 
+## 1.2.1 — 2026-11-09
+
+- Unified Portfolio, Resume, and Study Archive with the homepage's warm-white canvas, graphite text, and fine neutral rules.
+- Applied the shared palette to controls, search, thumbnails, mobile menus, archive access and selection states, and site-owned PDF frames and fallbacks.
+- Declared light mode on every entry point and updated versioned assets so returning visitors receive the current theme.
+
+Original portfolio artwork and PDF contents retain their colors. Existing layouts, navigation, page links, loader, aircraft scene, and archive session access are preserved. Browser-provided PDF toolbars follow the browser's own appearance. No dependency or data migration is required.
+
 ## 1.2.0 — 2026-11-09
 
 - Replaced the cinematic intro with a light, accessible loading ring that reveals the landing when the aircraft renders, fails, or reaches the 15-second ceiling.
