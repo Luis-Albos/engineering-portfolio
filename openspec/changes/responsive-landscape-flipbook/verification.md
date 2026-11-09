@@ -1,6 +1,21 @@
 # Cook Verification and Handoff
 
-**Open this:** http://127.0.0.1:8767/engineering-portfolio/ — the prepared static artifact at `C:/Users/Letzel/AppData/Local/Temp/portfolio-flipbook-build-20261109-03-r2/engineering-portfolio`. Canonical checkout: `C:/Users/Letzel/Desktop/Engineering/engineering-portfolio`; branch `codex/responsive-landscape-flipbook`; verified implementation commit `d2efdcf8bcda481f9d9087e93d11542b5425e833`. Installation is inapplicable. Build `20261109-03`; product `VERSION` remains `1.2.1` pending release review.
+**Open this:** http://127.0.0.1:8767/engineering-portfolio/ — the corrected build `20261109-04` at `C:/Users/Letzel/AppData/Local/Temp/portfolio-flipbook-build-20261109-04/engineering-portfolio`. Canonical checkout: `C:/Users/Letzel/Desktop/Engineering/engineering-portfolio`; branch `codex/responsive-landscape-flipbook`. Installation is inapplicable; product `VERSION` remains `1.2.1`. Verified repair implementation commit: `3fe1746e699b59eb5b4221aeecb3be1f6b0cbc37`; the later documentation-only final head is recorded in PR #6 and the local Cook Delivery Card. Current artifact receipt SHA-256: `75c8ddda20674b473e7666b0abedb6d92aae0b5ae6f150d164d6bbadd7e4c94a`.
+
+## Owner Review Repair — End-of-Turn White Flash
+
+The owner observed a white flash after the turn completed. A new regression reproduced **five blank frame opportunities** in the original implementation across forward/backward Single/Double turns and a mode change. The cause was the rolling-window rebuild: `createEngine()` removed the settled pages and initialized their replacements, but left those replacements hidden until its first scheduled animation frame. The completion microtask could therefore expose an empty stage to a paint.
+
+The correction performs the first static `drawFrame()` synchronously after selecting the correct page during initialization, before the handoff returns to the browser. The demand scheduler and bounded window remain unchanged; no overlay, delay, content reload or continuous animation loop is introduced. This is an in-scope correction of the existing requirement forbidding empty transition frames, not a new visual design.
+
+`scripts/test-page-turn-continuity.cjs` samples every animation frame, checking decoded imagery during turns and coverage of both paper regions at rest. The original code failed; the fixed source passed **634 samples**, and the actual build 04 artifact passed **637 samples** without a blank interval. The test accepts `TEST_BASE` for the actual prepared artifact. The existing portfolio native-touch assertion now waits for gesture settlement rather than assuming touch release synchronously completes an animation.
+
+Focused validation: continuity **4.01 s**, renderer/gesture/recovery **4.43 s**, and portfolio loading/history/routes **9.97 s**, all passed. Actual-artifact continuity passed in **4.05 s**. Boot consistency, cache/build-version checks and syntax checks passed. Preparing the corrected artifact, including fresh Study Archive generation, took **4.40 s**. Unchanged scene/PDF/other-route inputs retain their prior evidence; the broad suite was not repeated unnecessarily.
+
+Independent verification used compositor screencast pixels and a positive control which removed only this synchronous first draw. The control exposed **two fully blank painted frames among 254 captures**. The fixed source showed zero blank frames in 256 fixture captures and 146 real-artwork/native-drag captures. The actual fixed artifact then showed zero blank frames across **903 compositor captures** and **4,307 DOM samples**, including forward/backward Single/Double, mode changes, rapid reversal, delayed transfer, and an explicit **450.3 ms image-decode delay**, with zero page errors and all **147 public-file hashes** matching. See the [independent follow-up report](evidence/continuity/independent-continuity-review.md), [pixel counts](evidence/continuity/counts.json), [blank positive control](evidence/continuity/positive-control-blank.png), and [fixed artwork handoff](evidence/continuity/fixed-artwork-settled.png). The four actual-artifact capture runs measured 10.426, 11.425, 5.047 and 10.810 seconds.
+
+The same local preview address now serves build 04; the build 03 artifact is retained unchanged for history. The records below describe the original Cook delivery and its checks; this repair section and the current delivery card supersede their active artifact identity.
+
 
 ## Authority and Delivered Behavior
 
@@ -41,7 +56,7 @@ Independent testing found and rechecked two native Single-touch completion/cance
 
 Representative captures: [desktop spread](evidence/desktop-spread.png), [phone Double override](evidence/phone-double.png), and [phone mid-turn](evidence/phone-midturn.png). The accepted concept remains in `references/`.
 
-## Artifact Identity and Packaging
+## Original Cook Artifact Identity and Packaging (Build 03)
 
 - Prepared artifact: `C:/Users/Letzel/AppData/Local/Temp/portfolio-flipbook-build-20261109-03-r2/engineering-portfolio`.
 - `_artifact.json` SHA-256: **`db884ed7229567a21f617f924c51e6ddda6114f174459df882b96c490c76f809`**. A copy is [evidence/artifact-identity.json](evidence/artifact-identity.json).

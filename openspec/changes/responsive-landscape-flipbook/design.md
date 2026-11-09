@@ -129,3 +129,8 @@ Final initial tuning is **680 CSS pixels minimum per fitted sheet for Auto Doubl
 The existing Pages upload of the entire checkout was narrowed to a public allowlist staged by `scripts/prepare_site.py`. This is the specified artifact/dependency boundary, not a deployment-trigger or approval-policy change. The same staging is used for the local verified artifact; the existing archive generator produces 10 classes/21 resources there. Build-only regenerated seed manifest/thumbnail changes are excluded from source commits. Product `VERSION` remains 1.2.1; runtime build marker is 20261109-03.
 
 The independent report, artifact identity, completed checks and evidence limits are recorded in `verification.md`. No material product or aesthetic deviation from the accepted thin-sheet concept was needed.
+
+
+### Owner review: make the end-of-turn handoff atomic
+
+The owner found a white flash immediately after a turn. The bounded window was rebuilt in the completion microtask, but its new page elements remained hidden until the next scheduled draw. `createEngine()` now draws the selected static sheets synchronously before returning, then continues to use the request-driven scheduler. This preserves the accepted design and idle behavior while eliminating the exposed empty interval. The new frame-continuity regression fails on the old code and passes on the correction; independent compositor capture includes a positive control and real artwork. See the follow-up section of `verification.md` and its independent report. Build 20261109-04 supersedes the original local preview without changing product VERSION or release authority.
