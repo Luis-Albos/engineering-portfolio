@@ -318,5 +318,7 @@ featured-project annotation appears. On narrow screens, the copy and action stay
 ahead of the scene in reading order. The aircraft is the real
 `reference/CP1_2024.glb`, raised over the mountain field with a paper-colored fill
 and dark sketch lines.
-The viewer, Resume, and Resources share the landing's light palette while
-retaining their existing layouts and behavior. Flipbook planning remains separate.
+The viewer, Resume, and Resources share the landing's light palette. Resume and
+Resources retain their existing layouts and behavior. The Portfolio viewer uses
+the thin-sheet flipbook described in Viewer controls, with responsive
+Auto/Single/Double viewing.

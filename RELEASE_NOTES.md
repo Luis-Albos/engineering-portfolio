@@ -1,5 +1,15 @@
 # Release notes
 
+## 1.3.0 — 2026-11-09
+
+- Added thin, landscape page turns with Auto, Single, and Double viewing modes; resizing and mode changes preserve the selected page.
+- Replaced the permanent viewer rail with compact Chapters/search/thumbnails, and added detail zoom while retaining fullscreen, saved page links, history, keyboard and touch navigation.
+- Kept page loading and decoded image memory bounded, with foreground priority, retry, static fallback, reduced motion, and reusable landing aircraft behavior.
+- Removed the white gap at turn completion by drawing rebuilt sheets before the browser paints; verified with captured compositor frames.
+- Self-hosted the pinned MIT page-turn runtime and staged only public static files for Pages, validating referenced assets and excluding development dependencies.
+
+Original portfolio artwork, PDFs, Resume, and Study Archive access are preserved. This is a compatible feature release with no data migration. The [archived OpenSpec change](openspec/changes/archive/2026-11-09-responsive-landscape-flipbook/proposal.md) preserves the approved design and verification evidence.
+
 ## 1.2.1 — 2026-11-09
 
 - Unified Portfolio, Resume, and Study Archive with the homepage's warm-white canvas, graphite text, and fine neutral rules.
